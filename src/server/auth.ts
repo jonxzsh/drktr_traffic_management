@@ -5,11 +5,13 @@ import {
   type NextAuthOptions,
 } from "next-auth";
 import { type Adapter } from "next-auth/adapters";
-import DiscordProvider from "next-auth/providers/discord";
-
+import CredentialsProvider from "next-auth/providers/credentials";
 import { env } from "@/env";
 import { db } from "@/server/db";
-import { createTable } from "@/server/db/schema";
+import { createTable, users } from "@/server/db/schema";
+import bcrypt from "bcrypt";
+import { eq } from "drizzle-orm";
+import { LoginSchema } from "@/lib/schema/auth";
 
 /**
  * Module augmentation for `next-auth` types. Allows us to add custom properties to the `session`
@@ -38,20 +40,54 @@ declare module "next-auth" {
  * @see https://next-auth.js.org/configuration/options
  */
 export const authOptions: NextAuthOptions = {
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60,
+  },
   callbacks: {
-    session: ({ session, user }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: user.id,
-      },
-    }),
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+        token.email = user.email;
+        token.name = user.name;
+      }
+      return token;
+    },
+    session: ({ session, token }) => {
+      return {
+        ...session,
+        user: {
+          ...token,
+          id: token.id,
+        },
+      };
+    },
   },
   adapter: DrizzleAdapter(db, createTable) as Adapter,
   providers: [
-    DiscordProvider({
-      clientId: env.DISCORD_CLIENT_ID,
-      clientSecret: env.DISCORD_CLIENT_SECRET,
+    CredentialsProvider({
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials, req) {
+        const credentialsParsed = await LoginSchema.parseAsync(credentials);
+
+        const user = await db.query.users.findFirst({
+          where: eq(users.email, credentialsParsed.email),
+        });
+        if (!user) return null;
+
+        const passwordIsValid = await bcrypt.compare(
+          credentialsParsed.password,
+          user.password,
+        );
+        if (passwordIsValid) {
+          return user;
+        } else {
+          return null;
+        }
+      },
     }),
     /**
      * ...add more providers here.
