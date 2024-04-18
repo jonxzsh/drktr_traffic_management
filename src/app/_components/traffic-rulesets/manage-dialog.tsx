@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -10,7 +17,8 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CreateTrafficRulesetSchema } from "@/lib/schema/traffic-rulesets";
+import { EditTrafficRulesetSchema } from "@/lib/schema/traffic-rulesets";
+import { ITrafficRuleset } from "@/lib/types/generic";
 import { deviceEnum } from "@/server/db/schema";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -18,68 +26,56 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import StringArrayBuilder from "../generic/string-array-builder";
 
-const TrafficRulesetsCreateDialog = ({
-  onSuccess,
+const TrafficRulesetManageDialog = ({
+  ruleset,
+  refresh,
 }: {
-  onSuccess: () => void;
+  ruleset: ITrafficRuleset;
+  refresh: () => void;
 }) => {
-  const createMutation = api.trafficRulesets.createTrafficRuleset.useMutation();
+  const editRuleset = api.trafficRulesets.editTrafficRuleset.useMutation();
 
-  const form = useForm<z.infer<typeof CreateTrafficRulesetSchema>>({
-    resolver: zodResolver(CreateTrafficRulesetSchema),
+  const form = useForm<z.infer<typeof EditTrafficRulesetSchema>>({
+    resolver: zodResolver(EditTrafficRulesetSchema),
     defaultValues: {
-      referrer_domains_allowed: [
-        { id: crypto.randomUUID(), value: "example.com" },
-      ],
-      referrer_required_parameters: [],
+      ruleset_id: ruleset.id,
+      name: ruleset.name,
+      device: ruleset.device,
+      referrer_domains_allowed: ruleset.rulesetAllowedDomains.map((d) => ({
+        id: d.id,
+        value: d.domain ?? undefined,
+      })),
+      referrer_required_parameters: ruleset.rulesetRequiredParameters.map(
+        (p) => ({ id: p.id, value: p.parameter ?? undefined }),
+      ),
+      referrer_url_min_length: ruleset.referrer_url_min_length,
     },
   });
 
-  const onSubmit = async (
-    values: z.infer<typeof CreateTrafficRulesetSchema>,
-  ) => {
-    const createTrafficRuleset = await createMutation.mutateAsync(values);
-    if (createTrafficRuleset) {
-      form.reset();
-      onSuccess();
+  const onSubmit = async (values: z.infer<typeof EditTrafficRulesetSchema>) => {
+    const result = await editRuleset.mutateAsync(values);
+    if (result) {
+      refresh();
     }
   };
 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-5 w-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          <div>Create Traffic Ruleset</div>
-        </Button>
+        <Button size="sm">Edit</Button>
       </DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Viewing Ruleset - {ruleset.name}</DialogTitle>
+          <DialogDescription>
+            View and manage this ruleset below
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form
             className="flex flex-col gap-y-6"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            <div className="flex flex-col">
-              <div className="text-xl font-semibold">
-                Create New Traffic Ruleset
-              </div>
-              <div className="text-sm">
-                Enter the required details below to create a new traffic ruleset
-              </div>
-            </div>
             <div className="flex flex-col gap-y-3">
               <FormField
                 control={form.control}
@@ -172,9 +168,7 @@ const TrafficRulesetsCreateDialog = ({
                 )}
               />
             </div>
-            <Button disabled={createMutation.isPending} type={"submit"}>
-              Create Traffic Ruleset
-            </Button>
+            <Button type={"submit"}>Save Changes</Button>
           </form>
         </Form>
       </DialogContent>
@@ -182,4 +176,4 @@ const TrafficRulesetsCreateDialog = ({
   );
 };
 
-export default TrafficRulesetsCreateDialog;
+export default TrafficRulesetManageDialog;

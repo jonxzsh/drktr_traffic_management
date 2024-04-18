@@ -1,5 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 import BackupLandingPagesRouter from "./routers/backup-landing-pages";
+import GlobalTrafficRulesRouter from "./routers/global-traffic-rules";
 import LandingPagesRouter from "./routers/landing-pages";
 import PublishersRouter from "./routers/publishers";
 import TopicsRouter from "./routers/topics";
@@ -16,6 +17,7 @@ export const appRouter = createTRPCRouter({
   backupLandingPages: BackupLandingPagesRouter,
   topics: TopicsRouter,
   trafficRulesets: TrafficRulesetsRouter,
+  globalTraffic: GlobalTrafficRulesRouter,
 });
 
 // export type definition of API

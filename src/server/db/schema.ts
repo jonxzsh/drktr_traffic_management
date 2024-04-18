@@ -5,6 +5,7 @@ import {
   char,
   integer,
   pgEnum,
+  pgTable,
   pgTableCreator,
   text,
   timestamp,
@@ -55,10 +56,60 @@ export const publishers = createTable("publisher", {
     .notNull(),
   name: varchar("name", { length: 256 }).notNull(),
   apiKey: varchar("api_key", { length: 256 }).notNull(),
+  active: boolean("active")
+    .$defaultFn(() => true)
+    .notNull(),
   createdAt: timestamp("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 });
+
+export const publishersRelations = relations(publishers, ({ many }) => ({
+  topics: many(publsiherOnTopics),
+}));
+
+export const publsiherOnTopics = pgTable("publisher_topics", {
+  id: text("id")
+    .$defaultFn(() => createId())
+    .primaryKey()
+    .notNull(),
+  publisherId: text("publisher_id")
+    .notNull()
+    .references(() => publishers.id),
+  topicId: text("topic_id")
+    .notNull()
+    .references(() => topics.id),
+});
+
+export const publsiherOnTopicsRelations = relations(
+  publsiherOnTopics,
+  ({ one }) => ({
+    publisher: one(publishers, {
+      fields: [publsiherOnTopics.publisherId],
+      references: [publishers.id],
+    }),
+    topic: one(topics, {
+      fields: [publsiherOnTopics.topicId],
+      references: [topics.id],
+    }),
+  }),
+);
+
+export const topics = createTable("topic", {
+  id: text("id")
+    .$defaultFn(() => createId())
+    .primaryKey()
+    .notNull(),
+  name: varchar("name", { length: 256 }).notNull(),
+  createdAt: timestamp("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const topicsRelations = relations(topics, ({ many }) => ({
+  landingPages: many(landingPages),
+  publishers: many(publsiherOnTopics),
+}));
 
 export const deviceEnum = pgEnum("device", ["desktop", "mobile", "any"]);
 
@@ -69,9 +120,7 @@ export const trafficRulesets = createTable("traffic_rulesets", {
     .notNull(),
 
   name: varchar("name", { length: 256 }).notNull(),
-
-  referrer_domains_allowed: text("referrer_domains_allowed").array(),
-  referrer_required_parameters: text("referrer_required_parameters").array(),
+  referrer_url_min_length: integer("referrer_url_min_length").notNull(),
   device: deviceEnum("device").notNull(),
 
   createdAt: timestamp("created_at")
@@ -83,20 +132,73 @@ export const trafficRulesetRelations = relations(
   trafficRulesets,
   ({ many }) => ({
     landingPages: many(landingPages),
+    rulesetAllowedDomains: many(rulesetAllowedDomains),
+    rulesetRequiredParameters: many(rulesetRequiredParameters),
   }),
 );
 
-export const topics = createTable("topic", {
+export const rulesetAllowedDomains = createTable("traffic_ruleset_domains", {
   id: text("id")
     .$defaultFn(() => createId())
     .primaryKey()
     .notNull(),
-  name: varchar("name", { length: 256 }).notNull(),
+  domain: text("domain").unique().notNull(),
+  trafficRulesetId: text("traffic_ruleset")
+    .notNull()
+    .references(() => trafficRulesets.id),
+  createdAt: timestamp("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
 });
 
-export const topicsRelations = relations(topics, ({ many }) => ({
-  landingPages: many(landingPages),
-}));
+export const rulesetAllowedDomainsRelations = relations(
+  rulesetAllowedDomains,
+  ({ one }) => ({
+    trafficRuleset: one(trafficRulesets, {
+      fields: [rulesetAllowedDomains.trafficRulesetId],
+      references: [trafficRulesets.id],
+    }),
+  }),
+);
+
+export const rulesetRequiredParameters = createTable(
+  "traffic_ruleset_parameters",
+  {
+    id: text("id")
+      .$defaultFn(() => createId())
+      .primaryKey()
+      .notNull(),
+    parameter: text("parameter").unique().notNull(),
+    trafficRulesetId: text("traffic_ruleset")
+      .notNull()
+      .references(() => trafficRulesets.id),
+    createdAt: timestamp("created_at")
+      .default(sql`CURRENT_TIMESTAMP`)
+      .notNull(),
+  },
+);
+
+export const rulesetRequiredParametersRelations = relations(
+  rulesetRequiredParameters,
+  ({ one }) => ({
+    trafficRuleset: one(trafficRulesets, {
+      fields: [rulesetRequiredParameters.trafficRulesetId],
+      references: [trafficRulesets.id],
+    }),
+  }),
+);
+
+export const feedProviderEnum = pgEnum("feed_provider", [
+  "SYSTEM1",
+  "ADS.COM",
+  "TONIC",
+  "SEDO",
+  "YOUVERSAL",
+  "PERION",
+  "ADMAKXX",
+  "FIRST_OFFER",
+  "ADVERTIV",
+]);
 
 export const landingPages = createTable("landing_page", {
   id: text("id")
@@ -106,6 +208,8 @@ export const landingPages = createTable("landing_page", {
 
   name: varchar("name", { length: 256 }).notNull(),
   url: text("url").notNull(),
+
+  feedProvider: feedProviderEnum("feed_provider").notNull(),
 
   maxDailyHits: integer("max_daily_hits").notNull(),
   ipFreqCap: integer("ip_frequency_cap").notNull(),
@@ -162,7 +266,6 @@ export const globalTrafficRules = createTable("global_traffic_rules", {
   block_alternative_browsers: boolean("block_alternative_browsers")
     .default(false)
     .notNull(),
-  device: deviceEnum("device"),
   createdAt: timestamp("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),

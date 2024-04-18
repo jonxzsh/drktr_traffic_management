@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -11,11 +18,10 @@ import {
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
-import { CreateLandingPageSchema } from "@/lib/schema/landing-pages";
-import { deviceEnum } from "@/server/db/schema";
+import { EditLandingPageSchema } from "@/lib/schema/landing-pages";
+import { deviceEnum, landingPages } from "@/server/db/schema";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import CountryDropdown from "../generic/country-dropdown";
@@ -23,66 +29,62 @@ import FeedProviderDropdown from "../generic/feed-provider-dropdown";
 import TopicDropdown from "../generic/topic-dropdown";
 import TrafficRulesetsDropdown from "../generic/traffic-rulesets-dropdown";
 
-const LandingPageCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
-  const [open, setOpen] = useState<boolean>(false);
+const LandingPageEditDialog = ({
+  landingPage,
+  onSuccess,
+}: {
+  landingPage: typeof landingPages.$inferSelect;
+  onSuccess: () => void;
+}) => {
+  const editLandingPage = api.landingPages.editLandingPage.useMutation();
 
-  const createLandingPage = api.landingPages.createLandingPage.useMutation();
-
-  const form = useForm<z.infer<typeof CreateLandingPageSchema>>({
-    resolver: zodResolver(CreateLandingPageSchema),
+  const form = useForm<z.infer<typeof EditLandingPageSchema>>({
+    resolver: zodResolver(EditLandingPageSchema),
     defaultValues: {
+      landing_page_id: landingPage.id,
+      name: landingPage.name,
+      url: landingPage.url,
+      topic_id: landingPage.topicId,
+      feed_provider: landingPage.feedProvider,
+      max_daily_hits: landingPage.maxDailyHits,
       ip_frequency_cap: {
-        requests: 3,
-        hours: 24,
+        requests: landingPage.ipFreqCap,
+        hours: landingPage.ipFreqCapHours,
       },
+      geo: landingPage.geo ?? undefined,
+      device: landingPage.device,
+      referrer_required: landingPage.referrerRequired,
+      traffic_ruleset_id: landingPage.trafficRulesetId,
     },
   });
 
-  const onSubmit = async (values: z.infer<typeof CreateLandingPageSchema>) => {
-    const result = await createLandingPage.mutateAsync(values);
-    if (result) {
+  const onSubmit = async (values: z.infer<typeof EditLandingPageSchema>) => {
+    const createLandingPage = await editLandingPage.mutateAsync(values);
+    if (createLandingPage) {
       form.reset();
       onSuccess();
-      setOpen(false);
     }
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog>
       <DialogTrigger asChild>
-        <Button>
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            strokeWidth={1.5}
-            stroke="currentColor"
-            className="h-5 w-5"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              d="M12 4.5v15m7.5-7.5h-15"
-            />
-          </svg>
-          <div>Create Landing Page</div>
+        <Button size={"sm"}>
+          <div>Edit</div>
         </Button>
       </DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Viewing Landing page - {landingPage.name}</DialogTitle>
+          <DialogDescription>
+            You can view and edit the selected page below
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form
             className="flex flex-col gap-y-6"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            <div className="flex flex-col">
-              <div className="text-xl font-semibold">
-                Create New Landing Page
-              </div>
-              <div className="text-sm">
-                Enter the required details below to create a new landing page,
-                you can edit everything below later
-              </div>
-            </div>
             <div className="flex flex-col gap-y-3">
               <div className="flex justify-between gap-x-8">
                 <FormField
@@ -285,8 +287,8 @@ const LandingPageCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                 </div>
               </div>
             </div>
-            <Button disabled={createLandingPage.isPending} type={"submit"}>
-              Create Landing Page
+            <Button disabled={editLandingPage.isPending} type={"submit"}>
+              Save Changes
             </Button>
           </form>
         </Form>
@@ -295,4 +297,4 @@ const LandingPageCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
   );
 };
 
-export default LandingPageCreateDialog;
+export default LandingPageEditDialog;

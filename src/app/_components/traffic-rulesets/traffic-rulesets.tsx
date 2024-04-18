@@ -29,7 +29,10 @@ const DashboardTrafficRuleSets = () => {
           onSuccess={() => trafficRulesets.refetch()}
         />
       </div>
-      <TrafficRulesetsDataTable data={trafficRulesets.data} />
+      <TrafficRulesetsDataTable
+        data={trafficRulesets.data}
+        refresh={() => trafficRulesets.refetch()}
+      />
     </div>
   );
 };

@@ -1,8 +1,8 @@
+import { backupLandingPages } from "@/server/db/schema";
+import { TRPCError } from "@trpc/server";
+import { desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
-import { eq } from "drizzle-orm";
-import { backupLandingPages, landingPages } from "@/server/db/schema";
-import { TRPCError } from "@trpc/server";
 
 const BackupLandingPagesRouter = createTRPCRouter({
   getBackupLandingPages: protectedProcedure.query(async ({ ctx }) => {
@@ -14,6 +14,7 @@ const BackupLandingPagesRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const backupPage = await ctx.db.query.backupLandingPages.findFirst({
         where: eq(backupLandingPages.id, input),
+        orderBy: [desc(backupLandingPages.createdAt)],
       });
       if (!backupPage)
         throw new TRPCError({

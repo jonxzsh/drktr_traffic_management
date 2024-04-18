@@ -1,34 +1,61 @@
 import { DataTable } from "@/app/_components/ui/data-table";
-import { trafficRulesets } from "@/server/db/schema";
+import { ITrafficRuleset } from "@/lib/types/generic";
 import { ColumnDef } from "@tanstack/react-table";
-
-const TrafficRulesetsDataColumns: ColumnDef<
-  typeof trafficRulesets.$inferSelect
->[] = [
-  {
-    accessorKey: "id",
-    header: "ID",
-    size: 50,
-  },
-  {
-    accessorKey: "name",
-    header: "Name",
-  },
-  {
-    accessorKey: "referrer_domains_allowed",
-    header: "Referrer Domains Allowed",
-  },
-  {
-    accessorKey: "referrer_required_parameters",
-    header: "Referrer Required Query Parameters",
-  },
-];
+import TrafficRulesetManageDialog from "./manage-dialog";
 
 const TrafficRulesetsDataTable = ({
   data,
+  refresh,
 }: {
-  data: (typeof trafficRulesets.$inferSelect)[];
+  data: ITrafficRuleset[];
+  refresh: () => void;
 }) => {
+  const TrafficRulesetsDataColumns: ColumnDef<ITrafficRuleset>[] = [
+    {
+      accessorKey: "id",
+      header: "ID",
+      size: 50,
+    },
+    {
+      accessorKey: "name",
+      header: "Name",
+    },
+    {
+      accessorKey: "referrer_domains_allowed",
+      header: "Referrer Domains Allowed",
+      cell: ({ row }) => (
+        <div>
+          {row.original.rulesetAllowedDomains.map((d) => d.domain).join(", ")}
+        </div>
+      ),
+    },
+    {
+      accessorKey: "referrer_required_parameters",
+      header: "Referrer Required Query Parameters",
+      cell: ({ row }) => (
+        <div>
+          {row.original.rulesetRequiredParameters
+            .map((p) => p.parameter)
+            .join(", ")}
+        </div>
+      ),
+    },
+    {
+      accessorKey: ".",
+      header: "",
+      cell: ({ row }) => {
+        return (
+          <div className="flex justify-end">
+            <TrafficRulesetManageDialog
+              ruleset={row.original as ITrafficRuleset}
+              refresh={refresh}
+            />
+          </div>
+        );
+      },
+    },
+  ];
+
   return <DataTable columns={TrafficRulesetsDataColumns} data={data} />;
 };
 

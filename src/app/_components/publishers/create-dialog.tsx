@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -11,10 +18,13 @@ import { Input } from "@/components/ui/input";
 import { CreatePublisherSchema } from "@/lib/schema/publishers";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const PublisherCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
+  const [open, setOpen] = useState<boolean>(false);
+
   const createMutation = api.publishers.createPublisher.useMutation();
 
   const form = useForm<z.infer<typeof CreatePublisherSchema>>({
@@ -26,11 +36,12 @@ const PublisherCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
     if (createPublisher) {
       form.reset();
       onSuccess();
+      setOpen(false);
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <svg
@@ -51,32 +62,30 @@ const PublisherCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
         </Button>
       </DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Publisher</DialogTitle>
+          <DialogDescription>
+            Enter the required details below to create a new publisher, a unique
+            ID and API Key will be automatically generated for them
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form
-            className="flex flex-col gap-y-6"
+            className="flex flex-col gap-y-3"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            <div className="flex flex-col">
-              <div className="text-xl font-semibold">Create New Publisher</div>
-              <div className="text-sm">
-                Enter the required details below to create a new publisher, a
-                unique ID and API Key will be automatically generated for them
-              </div>
-            </div>
-            <div className="flex flex-col gap-y-3">
-              <FormField
-                control={form.control}
-                name={"name"}
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name={"name"}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
             <Button disabled={createMutation.isPending} type={"submit"}>
               Create Publisher
             </Button>

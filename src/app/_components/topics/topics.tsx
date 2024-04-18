@@ -27,7 +27,7 @@ const DashboardTopics = () => {
         <div className="text-2xl font-semibold">Existing Topics</div>
         <TopicCreateDialog onSuccess={() => topics.refetch()} />
       </div>
-      <TopicsDataTable data={topics.data} />
+      <TopicsDataTable data={topics.data} refresh={() => topics.refetch()} />
     </div>
   );
 };

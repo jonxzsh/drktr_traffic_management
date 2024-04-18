@@ -1,15 +1,31 @@
-import { CreateLandingPageSchema } from "@/lib/schema/landing-pages";
+import {
+  CreateLandingPageSchema,
+  EditLandingPageSchema,
+  GetLandingPagesSchema,
+} from "@/lib/schema/landing-pages";
 import { landingPages, topics } from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 const LandingPagesRouter = createTRPCRouter({
-  getLandingPages: protectedProcedure.query(async ({ ctx }) => {
-    const pages = await ctx.db.query.landingPages.findMany();
-    return pages;
-  }),
+  getLandingPages: protectedProcedure
+    .input(GetLandingPagesSchema)
+    .query(async ({ ctx, input }) => {
+      const pages = await ctx.db.query.landingPages.findMany({
+        where: and(
+          input.topic_id_filter
+            ? eq(landingPages.topicId, input.topic_id_filter)
+            : undefined,
+          input.feed_provider_filter
+            ? eq(landingPages.feedProvider, input.feed_provider_filter)
+            : undefined,
+        ),
+        orderBy: [desc(landingPages.createdAt)],
+      });
+      return pages;
+    }),
   createLandingPage: protectedProcedure
     .input(CreateLandingPageSchema)
     .mutation(async ({ ctx, input }) => {
@@ -28,6 +44,7 @@ const LandingPagesRouter = createTRPCRouter({
           name: input.name,
           url: input.url,
 
+          feedProvider: input.feed_provider,
           maxDailyHits: input.max_daily_hits,
           ipFreqCap: input.ip_frequency_cap.requests,
           ipFreqCapHours: input.ip_frequency_cap.hours,
@@ -41,6 +58,39 @@ const LandingPagesRouter = createTRPCRouter({
         .returning();
 
       return landingPage[0];
+    }),
+  editLandingPage: protectedProcedure
+    .input(EditLandingPageSchema)
+    .mutation(async ({ ctx, input }) => {
+      const landingPage = await ctx.db.query.landingPages.findFirst({
+        where: eq(landingPages.id, input.landing_page_id),
+      });
+      if (!landingPage)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "This landing page doesn't exist!",
+        });
+
+      await ctx.db
+        .update(landingPages)
+        .set({
+          name: input.name,
+          url: input.url,
+
+          feedProvider: input.feed_provider,
+          maxDailyHits: input.max_daily_hits,
+          ipFreqCap: input.ip_frequency_cap.requests,
+          ipFreqCapHours: input.ip_frequency_cap.hours,
+          geo: input.geo,
+          device: input.device,
+          referrerRequired: input.referrer_required,
+
+          topicId: input.topic_id,
+          trafficRulesetId: input.traffic_ruleset_id,
+        })
+        .where(eq(landingPages.id, landingPage.id));
+
+      return true;
     }),
   deleteLandingPage: protectedProcedure
     .input(z.string())

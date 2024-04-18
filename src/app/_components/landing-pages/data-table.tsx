@@ -1,17 +1,30 @@
 import { DataTable } from "@/app/_components/ui/data-table";
 import { landingPages } from "@/server/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
+import LandingPageDeleteDialog from "./delete-dialog";
+import LandingPageEditDialog from "./edit-dialog";
 
-const LandingPagesTableColumns: ColumnDef<typeof landingPages.$inferSelect>[] =
-  [
+const LandingPagesDataTable = ({
+  data,
+  refresh,
+}: {
+  data: (typeof landingPages.$inferSelect)[];
+  refresh: () => void;
+}) => {
+  const LandingPagesTableColumns: ColumnDef<
+    typeof landingPages.$inferSelect
+  >[] = [
     {
       accessorKey: "id",
       header: "ID",
-      size: 50,
     },
     {
       accessorKey: "name",
       header: "Name",
+    },
+    {
+      accessorKey: "feedProvider",
+      header: "Feed Provider",
     },
     {
       accessorKey: "url",
@@ -27,13 +40,26 @@ const LandingPagesTableColumns: ColumnDef<typeof landingPages.$inferSelect>[] =
         return <div className="text-right">{formattedDate}</div>;
       },
     },
+    {
+      accessorKey: "trafficRulesetId",
+      header: "",
+      cell: ({ row }) => {
+        return (
+          <div className="flex items-center justify-end gap-x-2">
+            <LandingPageEditDialog
+              landingPage={row.original as typeof landingPages.$inferSelect}
+              onSuccess={() => refresh()}
+            />
+            <LandingPageDeleteDialog
+              landingPage={row.original as typeof landingPages.$inferSelect}
+              onSuccess={() => refresh()}
+            />
+          </div>
+        );
+      },
+    },
   ];
 
-const LandingPagesDataTable = ({
-  data,
-}: {
-  data: (typeof landingPages.$inferSelect)[];
-}) => {
   return <DataTable columns={LandingPagesTableColumns} data={data} />;
 };
 

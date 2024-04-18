@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -51,17 +58,17 @@ const TopicCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
         </Button>
       </DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Topic</DialogTitle>
+          <DialogDescription>
+            Enter the required details below to create a new topic
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form
             className="flex flex-col gap-y-6"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            <div className="flex flex-col">
-              <div className="text-xl font-semibold">Create New Topic</div>
-              <div className="text-sm">
-                Enter the required details below to create a new topic
-              </div>
-            </div>
             <div className="flex flex-col gap-y-3">
               <FormField
                 control={form.control}

@@ -62,10 +62,10 @@ export function DataTable<TData, TValue>({
                 {row.getVisibleCells().map((cell) => (
                   <TableCell
                     key={cell.id}
-                    style={{
-                      width: cell.column.getSize(),
-                      maxWidth: cell.column.getSize(),
-                    }}
+                    // style={{
+                    //   width: cell.column.getSize(),
+                    //   maxWidth: cell.column.getSize(),
+                    // }}
                   >
                     {flexRender(cell.column.columnDef.cell, cell.getContext())}
                   </TableCell>

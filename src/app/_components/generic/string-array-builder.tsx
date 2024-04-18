@@ -16,14 +16,19 @@ const hashStr = (value: string) => {
   return hash;
 };
 
+type StringObj = {
+  id: string;
+  value: string;
+};
+
 const StringArrayBuilder = ({
   defaultValue,
   onChange,
   itemName = "Item",
   maxItems = 5,
 }: {
-  defaultValue: string[];
-  onChange: (state: string[]) => void;
+  defaultValue: StringObj[];
+  onChange: (state: StringObj[]) => void;
   itemName?: string;
   maxItems?: number;
 }) => {
@@ -37,14 +42,14 @@ const StringArrayBuilder = ({
       {defaultValue.map((item, index) => (
         <div
           className="flex justify-between gap-x-2"
-          key={`sab-${itemName}-${crypto.randomUUID()}`}
+          key={`sab-item-${item.id}`}
         >
           <Input
-            defaultValue={item}
+            defaultValue={item.value}
             onChange={(e) => {
               let arrayCopy = defaultValue;
               console.log("before", defaultValue);
-              arrayCopy[index] = e.target.value;
+              arrayCopy[index] = { id: item.id, value: e.target.value };
               console.log("after", arrayCopy);
               onChange(arrayCopy);
             }}
@@ -55,7 +60,7 @@ const StringArrayBuilder = ({
             type={"button"}
             onClick={() => {
               let arrayCopy = defaultValue;
-              arrayCopy = arrayCopy.filter((v) => v !== item);
+              arrayCopy = arrayCopy.filter((v) => v.id !== item.id);
               onChange(arrayCopy);
             }}
           >
@@ -80,7 +85,7 @@ const StringArrayBuilder = ({
         disabled={defaultValue.length === maxItems}
         onClick={() => {
           let arrayCopy = defaultValue;
-          arrayCopy.push("");
+          arrayCopy.push({ id: crypto.randomUUID(), value: "" });
           onChange(arrayCopy);
         }}
         variant={"outline"}
