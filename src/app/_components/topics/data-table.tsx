@@ -53,7 +53,7 @@ const TopicsDataTable = ({
               </Button>
             </Link>
             <TopicsPageDeleteDialog
-              topic={row.original as typeof topics.$inferSelect}
+              topic={row.original}
               onSuccess={() => refresh()}
             />
           </div>

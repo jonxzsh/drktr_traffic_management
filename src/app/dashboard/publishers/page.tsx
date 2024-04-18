@@ -1,4 +1,5 @@
 import DashboardPublishers from "@/app/_components/publishers/publishers";
+import { Suspense } from "react";
 
 const Publishers = () => {
   return (
@@ -11,7 +12,9 @@ const Publishers = () => {
       </div>
       <div className="flex w-full justify-between gap-x-8">
         <div className="w-3/4">
-          <DashboardPublishers />
+          <Suspense>
+            <DashboardPublishers />
+          </Suspense>
         </div>
       </div>
     </div>

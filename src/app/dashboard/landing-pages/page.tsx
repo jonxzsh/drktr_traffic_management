@@ -1,4 +1,5 @@
 import DashboardLandingPages from "@/app/_components/landing-pages/landing-pages";
+import { Suspense } from "react";
 
 const LandingPages = () => {
   return (
@@ -11,7 +12,9 @@ const LandingPages = () => {
       </div>
       <div className="flex w-full justify-between gap-x-8">
         <div className="w-3/4">
-          <DashboardLandingPages />
+          <Suspense>
+            <DashboardLandingPages />
+          </Suspense>
         </div>
       </div>
     </div>

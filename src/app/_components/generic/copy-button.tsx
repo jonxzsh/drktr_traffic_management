@@ -16,8 +16,8 @@ const CopyButton = ({
 }) => {
   const [copySuccess, setCopySuccess] = useState<boolean>(false);
 
-  const copyText = () => {
-    navigator.clipboard.writeText(text);
+  const copyText = async () => {
+    await navigator.clipboard.writeText(text);
 
     setCopySuccess(true);
     setTimeout(() => {

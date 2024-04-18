@@ -47,7 +47,7 @@ const TrafficRulesetsDataTable = ({
         return (
           <div className="flex justify-end">
             <TrafficRulesetManageDialog
-              ruleset={row.original as ITrafficRuleset}
+              ruleset={row.original}
               refresh={refresh}
             />
           </div>

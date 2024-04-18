@@ -54,7 +54,7 @@ const PublisherEditDialog = ({
           `${index + 1},${t.topic.name},${env.NEXT_PUBLIC_APP_URL}/${t.id}`,
       )
       .join("\n")}`;
-    let anchor = document.createElement("a");
+    const anchor = document.createElement("a");
     anchor.href = "data:text/csv;charset=utf-8," + encodeURI(csvFileData);
     anchor.target = "_blank";
     anchor.download = `${publisher.name.replaceAll(" ", "-").toLowerCase()}-topics.csv`;

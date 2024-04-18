@@ -47,11 +47,11 @@ const LandingPagesDataTable = ({
         return (
           <div className="flex items-center justify-end gap-x-2">
             <LandingPageEditDialog
-              landingPage={row.original as typeof landingPages.$inferSelect}
+              landingPage={row.original}
               onSuccess={() => refresh()}
             />
             <LandingPageDeleteDialog
-              landingPage={row.original as typeof landingPages.$inferSelect}
+              landingPage={row.original}
               onSuccess={() => refresh()}
             />
           </div>

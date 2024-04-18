@@ -3,19 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-const hashStr = (value: string) => {
-  var hash = 0,
-    i,
-    chr;
-  if (value.length === 0) return hash;
-  for (i = 0; i < value.length; i++) {
-    chr = value.charCodeAt(i);
-    hash = (hash << 5) - hash + chr;
-    hash |= 0;
-  }
-  return hash;
-};
-
 type StringObj = {
   id: string;
   value: string;
@@ -47,7 +34,7 @@ const StringArrayBuilder = ({
           <Input
             defaultValue={item.value}
             onChange={(e) => {
-              let arrayCopy = defaultValue;
+              const arrayCopy = defaultValue;
               console.log("before", defaultValue);
               arrayCopy[index] = { id: item.id, value: e.target.value };
               console.log("after", arrayCopy);
@@ -84,7 +71,7 @@ const StringArrayBuilder = ({
       <Button
         disabled={defaultValue.length === maxItems}
         onClick={() => {
-          let arrayCopy = defaultValue;
+          const arrayCopy = defaultValue;
           arrayCopy.push({ id: crypto.randomUUID(), value: "" });
           onChange(arrayCopy);
         }}
