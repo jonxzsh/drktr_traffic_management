@@ -7,24 +7,24 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { landingPages } from "@/server/db/schema";
+import { trafficRulesets } from "@/server/db/schema";
 import { api } from "@/trpc/react";
 import { TrashIcon } from "lucide-react";
 import { useState } from "react";
 
-const LandingPageDeleteDialog = ({
-  landingPage,
+const TrafficRulesetsPageDeleteDialog = ({
+  ruleset,
   onSuccess,
 }: {
-  landingPage: typeof landingPages.$inferSelect;
+  ruleset: typeof trafficRulesets.$inferSelect;
   onSuccess: () => void;
 }) => {
-  const deleteLandingPage = api.landingPages.deleteLandingPage.useMutation();
-
   const [open, setOpen] = useState<boolean>(false);
 
+  const deleteRuleset = api.trafficRulesets.deleteTrafficRuleset.useMutation();
+
   const onDelete = async () => {
-    const result = await deleteLandingPage.mutateAsync(landingPage.id);
+    const result = await deleteRuleset.mutateAsync(ruleset.id);
     if (result) {
       setOpen(false);
       onSuccess();
@@ -40,10 +40,11 @@ const LandingPageDeleteDialog = ({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Confirm Landing Page deletion</DialogTitle>
+          <DialogTitle>Confirm Ruleset deletion</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete landing page {landingPage.name}? You
-            will lose all statistics related to this landing page
+            Are you sure you want to delete ruleset {ruleset.name}? You will
+            lose all statistics related to this ruleset You cannot delete a
+            ruleset that is still used by a landing page
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-x-2">
@@ -52,10 +53,10 @@ const LandingPageDeleteDialog = ({
           </Button>
           <Button
             variant="destructive"
-            disabled={deleteLandingPage.isPending}
+            disabled={deleteRuleset.isPending}
             onClick={() => onDelete()}
           >
-            Delete {landingPage.name}
+            Delete {ruleset.name}
           </Button>
         </div>
       </DialogContent>
@@ -63,4 +64,4 @@ const LandingPageDeleteDialog = ({
   );
 };
 
-export default LandingPageDeleteDialog;
+export default TrafficRulesetsPageDeleteDialog;

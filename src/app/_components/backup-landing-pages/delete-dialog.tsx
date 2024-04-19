@@ -7,24 +7,27 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { landingPages } from "@/server/db/schema";
+import { backupLandingPages } from "@/server/db/schema";
 import { api } from "@/trpc/react";
 import { TrashIcon } from "lucide-react";
 import { useState } from "react";
 
-const LandingPageDeleteDialog = ({
-  landingPage,
+const BackupLandingPageDeleteDialog = ({
+  backupLandingPage,
   onSuccess,
 }: {
-  landingPage: typeof landingPages.$inferSelect;
+  backupLandingPage: typeof backupLandingPages.$inferSelect;
   onSuccess: () => void;
 }) => {
-  const deleteLandingPage = api.landingPages.deleteLandingPage.useMutation();
+  const deleteBackupLandingPage =
+    api.backupLandingPages.deleteBackupLandingPage.useMutation();
 
   const [open, setOpen] = useState<boolean>(false);
 
   const onDelete = async () => {
-    const result = await deleteLandingPage.mutateAsync(landingPage.id);
+    const result = await deleteBackupLandingPage.mutateAsync(
+      backupLandingPage.id,
+    );
     if (result) {
       setOpen(false);
       onSuccess();
@@ -40,10 +43,11 @@ const LandingPageDeleteDialog = ({
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Confirm Landing Page deletion</DialogTitle>
+          <DialogTitle>Confirm Backup Landing Page deletion</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete landing page {landingPage.name}? You
-            will lose all statistics related to this landing page
+            Are you sure you want to delete backup landing page{" "}
+            {backupLandingPage.name}? You will lose all statistics related to
+            this landing page
           </DialogDescription>
         </DialogHeader>
         <div className="flex justify-end gap-x-2">
@@ -52,10 +56,10 @@ const LandingPageDeleteDialog = ({
           </Button>
           <Button
             variant="destructive"
-            disabled={deleteLandingPage.isPending}
+            disabled={deleteBackupLandingPage.isPending}
             onClick={() => onDelete()}
           >
-            Delete {landingPage.name}
+            Delete {backupLandingPage.name}
           </Button>
         </div>
       </DialogContent>
@@ -63,4 +67,4 @@ const LandingPageDeleteDialog = ({
   );
 };
 
-export default LandingPageDeleteDialog;
+export default BackupLandingPageDeleteDialog;

@@ -18,10 +18,13 @@ import { Input } from "@/components/ui/input";
 import { CreateTopicSchema } from "@/lib/schema/topics";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const TopicCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
+  const [open, setOpen] = useState<boolean>(false);
+
   const createMutation = api.topics.createTopic.useMutation();
 
   const form = useForm<z.infer<typeof CreateTopicSchema>>({
@@ -33,11 +36,12 @@ const TopicCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
     if (createTopic) {
       form.reset();
       onSuccess();
+      setOpen(false);
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button>
           <svg

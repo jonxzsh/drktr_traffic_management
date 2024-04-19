@@ -3,64 +3,63 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { topics } from "@/server/db/schema";
 import { api } from "@/trpc/react";
-import { TrashIcon } from "lucide-react";
+import { UsersIcon } from "lucide-react";
 import { useState } from "react";
 
-const TopicsPageDeleteDialog = ({
+const TopicsAssignAllDialog = ({
   topic,
   onSuccess,
 }: {
   topic: typeof topics.$inferSelect;
   onSuccess: () => void;
 }) => {
-  const deleteTopic = api.topics.deleteTopic.useMutation();
+  const assignAllPublishers = api.topics.assignAllPublishers.useMutation();
 
   const [open, setOpen] = useState<boolean>(false);
 
-  const onDelete = async () => {
-    const result = await deleteTopic.mutateAsync(topic.id);
+  const onAssignAll = async () => {
+    const result = await assignAllPublishers.mutateAsync(topic.id);
     if (result) {
-      setOpen(false);
       onSuccess();
     }
   };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button size="smIcon" variant="destructive">
-          <TrashIcon size={17} />
+      <DialogTrigger>
+        <Button size="smIcon">
+          <UsersIcon size={17} />
         </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Confirm Topic deletion</DialogTitle>
+          <DialogTitle>Assign Topic to All Publishers</DialogTitle>
           <DialogDescription>
-            Are you sure you want to delete topic {topic.name}? You will lose
-            all statistics related to this topic
+            Please confirm that you want to assign this topic to all active
+            publishers, who don&apos;t have it assigned already
           </DialogDescription>
         </DialogHeader>
-        <div className="flex justify-end gap-x-2">
+        <DialogFooter>
           <Button variant="ghost" onClick={() => setOpen(false)}>
             Cancel
           </Button>
           <Button
-            variant="destructive"
-            disabled={deleteTopic.isPending}
-            onClick={() => onDelete()}
+            disabled={assignAllPublishers.isPending}
+            onClick={() => onAssignAll()}
           >
-            Delete {topic.name}
+            Assign {topic.name} to all publishers
           </Button>
-        </div>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
 };
 
-export default TopicsPageDeleteDialog;
+export default TopicsAssignAllDialog;

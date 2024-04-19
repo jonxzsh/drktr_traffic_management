@@ -18,6 +18,9 @@ const config = {
     "@typescript-eslint/no-misused-promises": "off",
     "@typescript-eslint/prefer-optional-chain": "off",
     "@typescript-eslint/restrict-template-expressions": "off",
+    "@typescript-eslint/no-base-to-string": "off",
+    "@typescript-eslint/no-unsafe-member-access": "off",
+    "drizzle/enforce-delete-with-where": "off",
     "@typescript-eslint/consistent-type-imports": [
       "warn",
       {
@@ -40,7 +43,6 @@ const config = {
     //     },
     //   },
     // ],
-    "drizzle/enforce-delete-with-where": "error",
     "drizzle/enforce-update-with-where": "error",
   },
 };

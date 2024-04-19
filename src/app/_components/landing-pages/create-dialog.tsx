@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -42,8 +49,8 @@ const LandingPageCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
     const result = await createLandingPage.mutateAsync(values);
     if (result) {
       form.reset();
-      onSuccess();
       setOpen(false);
+      onSuccess();
     }
   };
 
@@ -69,20 +76,18 @@ const LandingPageCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
         </Button>
       </DialogTrigger>
       <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Landing Page</DialogTitle>
+          <DialogDescription>
+            Enter the required details below to create a new landing page, you
+            can edit everything below later
+          </DialogDescription>
+        </DialogHeader>
         <Form {...form}>
           <form
             className="flex flex-col gap-y-6"
             onSubmit={form.handleSubmit(onSubmit)}
           >
-            <div className="flex flex-col">
-              <div className="text-xl font-semibold">
-                Create New Landing Page
-              </div>
-              <div className="text-sm">
-                Enter the required details below to create a new landing page,
-                you can edit everything below later
-              </div>
-            </div>
             <div className="flex flex-col gap-y-3">
               <div className="flex justify-between gap-x-8">
                 <FormField
@@ -201,13 +206,13 @@ const LandingPageCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                 <div className="flex w-full flex-col gap-y-3">
                   <FormField
                     control={form.control}
-                    name={"traffic_ruleset_id"}
+                    name={"traffic_ruleset_ids"}
                     render={({ field }) => (
                       <FormItem className="w-full">
                         <FormLabel>Traffic Ruleset</FormLabel>
                         <FormControl>
                           <TrafficRulesetsDropdown
-                            defaultValue={field.value ?? ""}
+                            defaultValue={field.value ?? []}
                             {...field}
                           />
                         </FormControl>
@@ -223,7 +228,7 @@ const LandingPageCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                         <FormLabel>Geographic Restrictions</FormLabel>
                         <FormControl>
                           <CountryDropdown
-                            defaultValue={field.value ?? ""}
+                            defaultValue={field.value ?? []}
                             {...field}
                           />
                         </FormControl>

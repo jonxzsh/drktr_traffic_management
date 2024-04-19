@@ -8,19 +8,6 @@ import TrafficRulesetsDataTable from "./data-table";
 const DashboardTrafficRuleSets = () => {
   const trafficRulesets = api.trafficRulesets.getTrafficRulesets.useQuery();
 
-  if (trafficRulesets.isFetching || !trafficRulesets.data) {
-    return (
-      <div className="flex flex-col gap-y-1">
-        {Array.from(Array(12).keys()).map((loadingRow, index) => (
-          <Skeleton
-            className="h-11 w-full"
-            key={`home-traffic-rulesets-loading-${index}`}
-          />
-        ))}
-      </div>
-    );
-  }
-
   return (
     <div className="flex flex-col gap-y-6">
       <div className="flex items-center justify-between">
@@ -29,10 +16,21 @@ const DashboardTrafficRuleSets = () => {
           onSuccess={() => trafficRulesets.refetch()}
         />
       </div>
-      <TrafficRulesetsDataTable
-        data={trafficRulesets.data}
-        refresh={() => trafficRulesets.refetch()}
-      />
+      {trafficRulesets.data ? (
+        <TrafficRulesetsDataTable
+          data={trafficRulesets.data}
+          refresh={() => trafficRulesets.refetch()}
+        />
+      ) : (
+        <div className="flex flex-col gap-y-1">
+          {Array.from(Array(12).keys()).map((loadingRow, index) => (
+            <Skeleton
+              className="h-11 w-full"
+              key={`home-traffic-rulesets-loading-${index}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

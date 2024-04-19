@@ -1,90 +1,86 @@
 "use client";
 
-import { Check, ChevronsUpDown } from "lucide-react";
-import { useState } from "react";
+import { CheckIcon, ChevronsUpDownIcon } from "lucide-react";
+import { useEffect, useState } from "react";
 
-import { Button } from "@/components/ui/button";
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
+import { Combobox } from "@headlessui/react";
 import countryList from "country-list";
+
+type Country = {
+  value: string;
+  label: string;
+};
 
 const CountryDropdown = ({
   defaultValue,
   onChange,
 }: {
-  defaultValue: string;
-  onChange: (state: string) => void;
+  defaultValue: string[];
+  onChange: (state: string[]) => void;
 }) => {
-  const [open, setOpen] = useState<boolean>(false);
+  const [countryName, setCountryName] = useState<string>("");
+
   const countryObject = countryList.getCodeList();
 
-  const selectData = Object.keys(countryObject).map((k) => ({
+  const countries = Object.keys(countryObject).map((k) => ({
     value: k,
     label: countryObject[k],
-  }));
+  })) as Country[];
+
+  const [countriesData, setCountriesData] = useState<Country[]>(countries);
+
+  useEffect(() => {
+    if (countryName.length > 0) {
+      setCountriesData(
+        countries.filter((c) =>
+          c.label.toLowerCase().includes(countryName.toLowerCase()),
+        ),
+      );
+    } else {
+      setCountriesData(countries);
+    }
+  }, [countryName]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          className="w-full justify-between overflow-hidden"
-        >
-          {defaultValue
-            ? selectData.find((country) => country.value === defaultValue)
-                ?.label
-            : "Unrestricted"}
-          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[200px] p-0">
-        <Command>
-          <CommandInput placeholder="Search countries..." />
-          <CommandEmpty>No county found.</CommandEmpty>
-          <CommandList>
-            <CommandGroup>
-              {selectData !== undefined &&
-                selectData.map((country) => (
-                  <CommandItem
-                    key={country.value}
-                    value={country.value}
-                    onSelect={(currentValue) => {
-                      onChange(
-                        currentValue === defaultValue ? "" : currentValue,
-                      );
-                      setOpen(false);
-                    }}
-                  >
-                    <Check
-                      className={cn(
-                        "mr-2 h-4 w-4",
-                        defaultValue === country.value
-                          ? "opacity-100"
-                          : "opacity-0",
-                      )}
-                    />
-                    {country.label}
-                  </CommandItem>
-                ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
+    <Combobox value={defaultValue} onChange={onChange} multiple>
+      <div className="relative">
+        <div className="relative w-full cursor-default overflow-hidden rounded-lg border border-input bg-white text-left">
+          <Combobox.Input
+            className="w-full border-none py-2 pl-3 pr-10 text-sm leading-5 text-gray-900 focus-visible:outline-none"
+            displayValue={(countries: string[]) => countries.join(", ")}
+            onChange={(e) => setCountryName(e.target.value)}
+          />
+          <Combobox.Button className="absolute inset-y-0 right-0 flex items-center pr-2">
+            <ChevronsUpDownIcon
+              className="h-5 w-5 text-gray-400"
+              aria-hidden="true"
+            />
+          </Combobox.Button>
+        </div>
+        <Combobox.Options className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black/5 focus:outline-none sm:text-sm">
+          {countriesData.map((country) => (
+            <Combobox.Option
+              className={({ active }) =>
+                `relative cursor-default select-none py-2 pl-4 pr-4 ${
+                  active ? "bg-primary text-white" : "text-gray-900"
+                }`
+              }
+              key={`country-option-${country.value}`}
+              value={country.value}
+            >
+              {({ selected, active }) => (
+                <div className="flex items-center gap-x-2">
+                  <div className="w-6">
+                    {selected && <CheckIcon size={17} />}
+                  </div>
+                  <div>{country.label}</div>
+                </div>
+              )}
+            </Combobox.Option>
+          ))}
+        </Combobox.Options>
+      </div>
+    </Combobox>
   );
 };
 

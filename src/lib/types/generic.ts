@@ -1,7 +1,9 @@
 import {
   feedProviderEnum,
+  landingPages,
+  pagesOnTrafficRulesets,
+  publisherOnTopics,
   publishers,
-  publsiherOnTopics,
   rulesetAllowedDomains,
   rulesetRequiredParameters,
   topics,
@@ -11,7 +13,7 @@ import { InferSelectModel } from "drizzle-orm";
 
 export type FeedProvider = (typeof feedProviderEnum.enumValues)[number];
 
-export type IPublisherTopic = InferSelectModel<typeof publsiherOnTopics> & {
+export type IPublisherTopic = InferSelectModel<typeof publisherOnTopics> & {
   topic: InferSelectModel<typeof topics>;
 };
 
@@ -24,4 +26,15 @@ export type ITrafficRuleset = InferSelectModel<typeof trafficRulesets> & {
   rulesetRequiredParameters: InferSelectModel<
     typeof rulesetRequiredParameters
   >[];
+};
+
+export type ILandingPageRuleset = InferSelectModel<
+  typeof pagesOnTrafficRulesets
+> & {
+  trafficRuleset: InferSelectModel<typeof trafficRulesets>;
+};
+
+export type ILandingPage = InferSelectModel<typeof landingPages> & {
+  topic: InferSelectModel<typeof topics>;
+  trafficRulesets: ILandingPageRuleset[];
 };

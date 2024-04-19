@@ -15,11 +15,11 @@ export const CreateLandingPageSchema = z.object({
     requests: z.number(),
     hours: z.number(),
   }),
-  geo: z.string().optional(),
+  geo: z.string().array().optional(),
   device: z.enum(deviceEnum.enumValues),
   referrer_required: z.boolean(),
   topic_id: z.string(),
-  traffic_ruleset_id: z.string(),
+  traffic_ruleset_ids: z.string().array(),
 });
 
 export const EditLandingPageSchema = z.object({
@@ -32,9 +32,9 @@ export const EditLandingPageSchema = z.object({
     requests: z.number(),
     hours: z.number(),
   }),
-  geo: z.string().optional(),
+  geo: z.string().array().optional(),
   device: z.enum(deviceEnum.enumValues),
   referrer_required: z.boolean(),
   topic_id: z.string(),
-  traffic_ruleset_id: z.string(),
+  traffic_ruleset_ids: z.string().array(),
 });

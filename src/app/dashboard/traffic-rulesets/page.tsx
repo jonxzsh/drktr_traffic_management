@@ -1,6 +1,10 @@
+"use client";
 import DashboardTrafficRuleSets from "@/app/_components/traffic-rulesets/traffic-rulesets";
+import { useToast } from "@/components/ui/use-toast";
 
 const Topics = () => {
+  const { toast } = useToast();
+
   return (
     <div className="flex flex-col gap-y-16">
       <div className="flex max-w-2xl flex-col gap-y-4">

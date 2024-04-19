@@ -30,6 +30,10 @@ import { z } from "zod";
 import CopyButton from "../generic/copy-button";
 import TopicDropdown from "../generic/topic-dropdown";
 
+const getPublisherTopicUrl = (relation_id: string) => {
+  return `${env.NEXT_PUBLIC_APP_URL}/tr/${relation_id}?adbid=&subid=`;
+};
+
 const PublisherEditDialog = ({
   publisher,
   refresh,
@@ -42,7 +46,7 @@ const PublisherEditDialog = ({
   const publisherTxtList = publisher.topics
     .map(
       (t, index) =>
-        `${index + 1}) ${t.topic.name} ${env.NEXT_PUBLIC_APP_URL}/${t.id}`,
+        `${index + 1}) ${t.topic.name} ${getPublisherTopicUrl(t.id)}`,
     )
     .join("\n");
 
@@ -51,7 +55,7 @@ const PublisherEditDialog = ({
     csvFileData += `\n${publisher.topics
       .map(
         (t, index) =>
-          `${index + 1},${t.topic.name},${env.NEXT_PUBLIC_APP_URL}/${t.id}`,
+          `${index + 1},${t.topic.name},${getPublisherTopicUrl(t.id)}`,
       )
       .join("\n")}`;
     const anchor = document.createElement("a");
@@ -163,8 +167,6 @@ const PublisherTopic = ({
 }) => {
   const removeTopic = api.publishers.removeTopic.useMutation();
 
-  const url = `${env.NEXT_PUBLIC_APP_URL}/${topic_publisher_relation_id}`;
-
   const onDelete = async () => {
     const result = await removeTopic.mutateAsync({
       publisher_topic_relation_id: topic.id,
@@ -178,8 +180,11 @@ const PublisherTopic = ({
     <div className="flex flex-col gap-y-2">
       <Label>{topic.topic.name}</Label>
       <div className="flex gap-x-2">
-        <Input value={url} disabled={true} />
-        <CopyButton text={url} />
+        <Input
+          value={getPublisherTopicUrl(topic_publisher_relation_id)}
+          disabled={true}
+        />
+        <CopyButton text={getPublisherTopicUrl(topic_publisher_relation_id)} />
         <Button
           variant="destructive"
           size="icon"

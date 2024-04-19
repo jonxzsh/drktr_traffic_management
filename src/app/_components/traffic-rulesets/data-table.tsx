@@ -1,6 +1,7 @@
 import { DataTable } from "@/app/_components/ui/data-table";
 import { ITrafficRuleset } from "@/lib/types/generic";
 import { ColumnDef } from "@tanstack/react-table";
+import TrafficRulesetsPageDeleteDialog from "./delete-dialog";
 import TrafficRulesetManageDialog from "./manage-dialog";
 
 const TrafficRulesetsDataTable = ({
@@ -45,10 +46,14 @@ const TrafficRulesetsDataTable = ({
       header: "",
       cell: ({ row }) => {
         return (
-          <div className="flex justify-end">
+          <div className="flex items-center justify-end gap-x-2">
             <TrafficRulesetManageDialog
               ruleset={row.original}
               refresh={refresh}
+            />
+            <TrafficRulesetsPageDeleteDialog
+              ruleset={row.original}
+              onSuccess={refresh}
             />
           </div>
         );

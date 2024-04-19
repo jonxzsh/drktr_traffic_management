@@ -3,7 +3,12 @@ import {
   EditLandingPageSchema,
   GetLandingPagesSchema,
 } from "@/lib/schema/landing-pages";
-import { landingPages, topics } from "@/server/db/schema";
+import { ILandingPage } from "@/lib/types/generic";
+import {
+  landingPages,
+  pagesOnTrafficRulesets,
+  topics,
+} from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
@@ -23,8 +28,12 @@ const LandingPagesRouter = createTRPCRouter({
             : undefined,
         ),
         orderBy: [desc(landingPages.createdAt)],
+        with: {
+          topic: true,
+          trafficRulesets: { with: { trafficRuleset: true } },
+        },
       });
-      return pages;
+      return pages as ILandingPage[];
     }),
   createLandingPage: protectedProcedure
     .input(CreateLandingPageSchema)
@@ -53,11 +62,26 @@ const LandingPagesRouter = createTRPCRouter({
           referrerRequired: input.referrer_required,
 
           topicId: input.topic_id,
-          trafficRulesetId: input.traffic_ruleset_id,
         })
         .returning();
 
-      return landingPage[0];
+      const createdLandingPage = landingPage[0];
+      if (!createdLandingPage)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create landing page!",
+        });
+
+      if (input.traffic_ruleset_ids && input.traffic_ruleset_ids.length > 0) {
+        input.traffic_ruleset_ids.forEach(async (ruleset) => {
+          await ctx.db.insert(pagesOnTrafficRulesets).values({
+            landingPageId: createdLandingPage.id,
+            trafficRulesetId: ruleset,
+          });
+        });
+      }
+
+      return createdLandingPage;
     }),
   editLandingPage: protectedProcedure
     .input(EditLandingPageSchema)
@@ -70,6 +94,19 @@ const LandingPagesRouter = createTRPCRouter({
           code: "NOT_FOUND",
           message: "This landing page doesn't exist!",
         });
+
+      await ctx.db
+        .delete(pagesOnTrafficRulesets)
+        .where(eq(pagesOnTrafficRulesets.landingPageId, landingPage.id));
+
+      if (input.traffic_ruleset_ids && input.traffic_ruleset_ids.length > 0) {
+        input.traffic_ruleset_ids.forEach(async (ruleset) => {
+          await ctx.db.insert(pagesOnTrafficRulesets).values({
+            landingPageId: landingPage.id,
+            trafficRulesetId: ruleset,
+          });
+        });
+      }
 
       await ctx.db
         .update(landingPages)
@@ -86,7 +123,6 @@ const LandingPagesRouter = createTRPCRouter({
           referrerRequired: input.referrer_required,
 
           topicId: input.topic_id,
-          trafficRulesetId: input.traffic_ruleset_id,
         })
         .where(eq(landingPages.id, landingPage.id));
 

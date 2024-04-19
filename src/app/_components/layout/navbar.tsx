@@ -18,6 +18,9 @@ const DashboardNavbar = () => {
             <NavOption href={"/dashboard/landing-pages"}>
               Landing Pages
             </NavOption>
+            <NavOption href={"/dashboard/backup-landing-pages"}>
+              Backup Landing Pages
+            </NavOption>
             <NavOption href={"/dashboard/traffic-rulesets"}>
               Traffic Rulesets
             </NavOption>

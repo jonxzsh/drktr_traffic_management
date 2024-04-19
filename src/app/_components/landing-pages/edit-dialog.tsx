@@ -19,9 +19,11 @@ import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Switch } from "@/components/ui/switch";
 import { EditLandingPageSchema } from "@/lib/schema/landing-pages";
-import { deviceEnum, landingPages } from "@/server/db/schema";
+import { ILandingPage } from "@/lib/types/generic";
+import { deviceEnum } from "@/server/db/schema";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import CountryDropdown from "../generic/country-dropdown";
@@ -33,9 +35,11 @@ const LandingPageEditDialog = ({
   landingPage,
   onSuccess,
 }: {
-  landingPage: typeof landingPages.$inferSelect;
+  landingPage: ILandingPage;
   onSuccess: () => void;
 }) => {
+  const [open, setOpen] = useState<boolean>(false);
+
   const editLandingPage = api.landingPages.editLandingPage.useMutation();
 
   const form = useForm<z.infer<typeof EditLandingPageSchema>>({
@@ -54,7 +58,9 @@ const LandingPageEditDialog = ({
       geo: landingPage.geo ?? undefined,
       device: landingPage.device,
       referrer_required: landingPage.referrerRequired,
-      traffic_ruleset_id: landingPage.trafficRulesetId,
+      traffic_ruleset_ids: landingPage.trafficRulesets.map(
+        (t) => t.trafficRulesetId,
+      ),
     },
   });
 
@@ -62,12 +68,13 @@ const LandingPageEditDialog = ({
     const createLandingPage = await editLandingPage.mutateAsync(values);
     if (createLandingPage) {
       form.reset();
+      setOpen(false);
       onSuccess();
     }
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button size={"sm"}>
           <div>Edit</div>
@@ -203,7 +210,7 @@ const LandingPageEditDialog = ({
                 <div className="flex w-full flex-col gap-y-3">
                   <FormField
                     control={form.control}
-                    name={"traffic_ruleset_id"}
+                    name={"traffic_ruleset_ids"}
                     render={({ field }) => (
                       <FormItem className="w-full">
                         <FormLabel>Traffic Ruleset</FormLabel>
@@ -225,7 +232,7 @@ const LandingPageEditDialog = ({
                         <FormLabel>Geographic Restrictions</FormLabel>
                         <FormControl>
                           <CountryDropdown
-                            defaultValue={field.value ?? ""}
+                            defaultValue={field.value ?? []}
                             {...field}
                           />
                         </FormControl>

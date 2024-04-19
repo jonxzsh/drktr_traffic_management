@@ -1,17 +1,19 @@
 import { DataTable } from "@/app/_components/ui/data-table";
-import { ILandingPage } from "@/lib/types/generic";
+import { backupLandingPages } from "@/server/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
-import LandingPageDeleteDialog from "./delete-dialog";
-import LandingPageEditDialog from "./edit-dialog";
+import BackupLandingPageDeleteDialog from "./delete-dialog";
+import BackupLandingPageEditDialog from "./edit-dialog";
 
 const LandingPagesDataTable = ({
   data,
   refresh,
 }: {
-  data: ILandingPage[];
+  data: (typeof backupLandingPages.$inferSelect)[];
   refresh: () => void;
 }) => {
-  const LandingPagesTableColumns: ColumnDef<ILandingPage>[] = [
+  const LandingPagesTableColumns: ColumnDef<
+    typeof backupLandingPages.$inferSelect
+  >[] = [
     {
       accessorKey: "id",
       header: "ID",
@@ -19,17 +21,6 @@ const LandingPagesDataTable = ({
     {
       accessorKey: "name",
       header: "Name",
-    },
-    {
-      accessorKey: "topic",
-      header: "Topic",
-      cell: ({ row }) => {
-        return <>{row.original.topic.name}</>;
-      },
-    },
-    {
-      accessorKey: "feedProvider",
-      header: "Feed Provider",
     },
     {
       accessorKey: "url",
@@ -53,12 +44,12 @@ const LandingPagesDataTable = ({
       cell: ({ row }) => {
         return (
           <div className="flex items-center justify-end gap-x-2">
-            <LandingPageEditDialog
-              landingPage={row.original}
+            <BackupLandingPageEditDialog
+              backupLandingPage={row.original}
               onSuccess={() => refresh()}
             />
-            <LandingPageDeleteDialog
-              landingPage={row.original}
+            <BackupLandingPageDeleteDialog
+              backupLandingPage={row.original}
               onSuccess={() => refresh()}
             />
           </div>

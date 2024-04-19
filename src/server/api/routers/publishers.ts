@@ -7,8 +7,8 @@ import {
 } from "@/lib/schema/publishers";
 import { IPublisher } from "@/lib/types/generic";
 import {
+  publisherOnTopics,
   publishers,
-  publsiherOnTopics,
   topics,
   users,
 } from "@/server/db/schema";
@@ -22,8 +22,8 @@ const PublishersRouter = createTRPCRouter({
     .input(GetPublishersSchema)
     .query(async ({ ctx, input }) => {
       if (input.topic_id_filter) {
-        const publisherOnTopic = await ctx.db.query.publsiherOnTopics.findMany({
-          where: eq(publsiherOnTopics.topicId, input.topic_id_filter),
+        const publisherOnTopic = await ctx.db.query.publisherOnTopics.findMany({
+          where: eq(publisherOnTopics.topicId, input.topic_id_filter),
         });
         const publisherIds = publisherOnTopic.map((p) => p.publisherId);
         if (!(publisherIds.length > 0)) return [] as IPublisher[];
@@ -81,6 +81,17 @@ const PublishersRouter = createTRPCRouter({
       const publisher = await ctx.db.query.publishers.findFirst({
         where: eq(users.id, input),
       });
+      if (!publisher)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "This publisher doesn't exist!",
+        });
+
+      await ctx.db
+        .delete(publisherOnTopics)
+        .where(eq(publisherOnTopics.publisherId, publisher.id));
+      await ctx.db.delete(publishers).where(eq(publishers.id, publisher.id));
+
       return publisher;
     }),
   assignTopic: protectedProcedure
@@ -104,7 +115,7 @@ const PublishersRouter = createTRPCRouter({
           message: "Topic doesn't exist!",
         });
 
-      await ctx.db.insert(publsiherOnTopics).values({
+      await ctx.db.insert(publisherOnTopics).values({
         publisherId: input.publisher_id,
         topicId: input.topic_id,
       });
@@ -114,8 +125,8 @@ const PublishersRouter = createTRPCRouter({
   removeTopic: protectedProcedure
     .input(RemovePublisherTopicSchema)
     .mutation(async ({ ctx, input }) => {
-      const publisher = await ctx.db.query.publsiherOnTopics.findFirst({
-        where: eq(publsiherOnTopics.id, input.publisher_topic_relation_id),
+      const publisher = await ctx.db.query.publisherOnTopics.findFirst({
+        where: eq(publisherOnTopics.id, input.publisher_topic_relation_id),
       });
       if (!publisher)
         throw new TRPCError({
@@ -124,8 +135,8 @@ const PublishersRouter = createTRPCRouter({
         });
 
       await ctx.db
-        .delete(publsiherOnTopics)
-        .where(eq(publsiherOnTopics.id, input.publisher_topic_relation_id));
+        .delete(publisherOnTopics)
+        .where(eq(publisherOnTopics.id, input.publisher_topic_relation_id));
 
       return true;
     }),

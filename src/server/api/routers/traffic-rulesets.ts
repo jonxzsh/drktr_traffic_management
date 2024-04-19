@@ -4,7 +4,7 @@ import {
 } from "@/lib/schema/traffic-rulesets";
 import { ITrafficRuleset } from "@/lib/types/generic";
 import {
-  landingPages,
+  pagesOnTrafficRulesets,
   rulesetAllowedDomains,
   rulesetRequiredParameters,
   trafficRulesets,
@@ -121,8 +121,8 @@ const TrafficRulesetsRouter = createTRPCRouter({
         });
 
       const landingPagesUsingRuleset =
-        await ctx.db.query.landingPages.findFirst({
-          where: eq(landingPages.trafficRulesetId, trafficRuleset.id),
+        await ctx.db.query.pagesOnTrafficRulesets.findFirst({
+          where: eq(pagesOnTrafficRulesets.trafficRulesetId, trafficRuleset.id),
         });
 
       if (landingPagesUsingRuleset)
@@ -131,6 +131,20 @@ const TrafficRulesetsRouter = createTRPCRouter({
           message:
             "Atleast one landing page is still using this traffic ruleset, you can't delete traffic rulesets with active landing pages",
         });
+
+      await ctx.db
+        .delete(rulesetAllowedDomains)
+        .where(eq(rulesetAllowedDomains.trafficRulesetId, trafficRuleset.id));
+
+      await ctx.db
+        .delete(rulesetRequiredParameters)
+        .where(
+          eq(rulesetRequiredParameters.trafficRulesetId, trafficRuleset.id),
+        );
+
+      await ctx.db
+        .delete(trafficRulesets)
+        .where(eq(trafficRulesets.id, trafficRuleset.id));
 
       return true;
     }),

@@ -65,10 +65,10 @@ export const publishers = createTable("publisher", {
 });
 
 export const publishersRelations = relations(publishers, ({ many }) => ({
-  topics: many(publsiherOnTopics),
+  topics: many(publisherOnTopics),
 }));
 
-export const publsiherOnTopics = pgTable("publisher_topics", {
+export const publisherOnTopics = pgTable("publisher_topics", {
   id: text("id")
     .$defaultFn(() => createId())
     .primaryKey()
@@ -81,15 +81,15 @@ export const publsiherOnTopics = pgTable("publisher_topics", {
     .references(() => topics.id),
 });
 
-export const publsiherOnTopicsRelations = relations(
-  publsiherOnTopics,
+export const publisherOnTopicsRelations = relations(
+  publisherOnTopics,
   ({ one }) => ({
     publisher: one(publishers, {
-      fields: [publsiherOnTopics.publisherId],
+      fields: [publisherOnTopics.publisherId],
       references: [publishers.id],
     }),
     topic: one(topics, {
-      fields: [publsiherOnTopics.topicId],
+      fields: [publisherOnTopics.topicId],
       references: [topics.id],
     }),
   }),
@@ -108,7 +108,7 @@ export const topics = createTable("topic", {
 
 export const topicsRelations = relations(topics, ({ many }) => ({
   landingPages: many(landingPages),
-  publishers: many(publsiherOnTopics),
+  publishers: many(publisherOnTopics),
 }));
 
 export const deviceEnum = pgEnum("device", ["desktop", "mobile", "any"]);
@@ -131,7 +131,7 @@ export const trafficRulesets = createTable("traffic_rulesets", {
 export const trafficRulesetRelations = relations(
   trafficRulesets,
   ({ many }) => ({
-    landingPages: many(landingPages),
+    landingPages: many(pagesOnTrafficRulesets),
     rulesetAllowedDomains: many(rulesetAllowedDomains),
     rulesetRequiredParameters: many(rulesetRequiredParameters),
   }),
@@ -200,7 +200,7 @@ export const feedProviderEnum = pgEnum("feed_provider", [
   "ADVERTIV",
 ]);
 
-export const landingPages = createTable("landing_page", {
+export const landingPages = createTable("landing_pages", {
   id: text("id")
     .$defaultFn(() => createId())
     .primaryKey()
@@ -214,7 +214,10 @@ export const landingPages = createTable("landing_page", {
   maxDailyHits: integer("max_daily_hits").notNull(),
   ipFreqCap: integer("ip_frequency_cap").notNull(),
   ipFreqCapHours: integer("ip_frequency_cap_hours").notNull(),
-  geo: text("geo_country"),
+  geo: text("geo_country")
+    .array()
+    .notNull()
+    .default(sql`'{}'::text[]`),
   device: deviceEnum("device").notNull(),
   referrerRequired: boolean("referrer_required").notNull(),
 
@@ -222,25 +225,49 @@ export const landingPages = createTable("landing_page", {
     .notNull()
     .references(() => topics.id),
 
-  trafficRulesetId: text("traffic_ruleset")
-    .notNull()
-    .references(() => trafficRulesets.id),
-
   createdAt: timestamp("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 });
 
-export const landingPagesRelations = relations(landingPages, ({ one }) => ({
-  topic: one(topics, {
-    fields: [landingPages.topicId],
-    references: [topics.id],
+export const landingPagesRelations = relations(
+  landingPages,
+  ({ one, many }) => ({
+    topic: one(topics, {
+      fields: [landingPages.topicId],
+      references: [topics.id],
+    }),
+    trafficRulesets: many(pagesOnTrafficRulesets),
   }),
-  trafficRuleset: one(trafficRulesets, {
-    fields: [landingPages.trafficRulesetId],
-    references: [trafficRulesets.id],
+);
+
+//To keep record of LANDING PAGES -> TRAFFIC RULESETS, many-to-many
+export const pagesOnTrafficRulesets = pgTable("pages_traffic_rulesets", {
+  id: text("id")
+    .$defaultFn(() => createId())
+    .primaryKey()
+    .notNull(),
+  landingPageId: text("landing_page_id")
+    .notNull()
+    .references(() => landingPages.id),
+  trafficRulesetId: text("traffic_ruleset_id")
+    .notNull()
+    .references(() => trafficRulesets.id),
+});
+
+export const pagesOnTrafficRulesetsRelations = relations(
+  pagesOnTrafficRulesets,
+  ({ one }) => ({
+    landingPages: one(landingPages, {
+      fields: [pagesOnTrafficRulesets.landingPageId],
+      references: [landingPages.id],
+    }),
+    trafficRuleset: one(trafficRulesets, {
+      fields: [pagesOnTrafficRulesets.trafficRulesetId],
+      references: [trafficRulesets.id],
+    }),
   }),
-}));
+);
 
 export const backupLandingPages = createTable("backup_landing_page", {
   id: text("id")
@@ -248,6 +275,7 @@ export const backupLandingPages = createTable("backup_landing_page", {
     .primaryKey()
     .notNull(),
 
+  name: varchar("name", { length: 256 }).notNull(),
   url: text("url").notNull(),
   maxDailyHits: integer("max_daily_hits").notNull(),
   device: deviceEnum("device").notNull(),

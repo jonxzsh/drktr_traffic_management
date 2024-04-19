@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { topics } from "@/server/db/schema";
 import { ColumnDef } from "@tanstack/react-table";
 import Link from "next/link";
+import TopicsAssignAllDialog from "./assign-all-dialog";
 import TopicsPageDeleteDialog from "./delete-dialog";
 
 const TopicsDataTable = ({
@@ -26,10 +27,12 @@ const TopicsDataTable = ({
       accessorKey: "createdAt",
       header: () => <div className="text-right">Created</div>,
       cell: ({ row }) => {
-        const formattedDate = new Date(row.getValue("createdAt"))
-          .toJSON()
-          .slice(0, 10);
-        return <div className="text-right">{formattedDate}</div>;
+        const formattedDate = new Date(row.getValue("createdAt"));
+        return (
+          <div className="text-right">
+            {formattedDate.toLocaleDateString("en-US")}
+          </div>
+        );
       },
     },
     {
@@ -52,6 +55,10 @@ const TopicsDataTable = ({
                 Landing Pages
               </Button>
             </Link>
+            <TopicsAssignAllDialog
+              topic={row.original}
+              onSuccess={() => refresh()}
+            />
             <TopicsPageDeleteDialog
               topic={row.original}
               onSuccess={() => refresh()}

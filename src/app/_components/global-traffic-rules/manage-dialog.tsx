@@ -21,11 +21,13 @@ import { Switch } from "@/components/ui/switch";
 import { SetGlobalTrafficRulesSchema } from "@/lib/schema/global-traffic-rules";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 const GlobalTrafficRulesMangeDialog = () => {
+  const [open, setOpen] = useState<boolean>(false);
+
   const trafficRules = api.globalTraffic.getRules.useQuery();
   const setTrafficRules = api.globalTraffic.setRules.useMutation();
 
@@ -39,6 +41,7 @@ const GlobalTrafficRulesMangeDialog = () => {
     const result = await setTrafficRules.mutateAsync(values);
     if (result) {
       trafficRules.refetch();
+      setOpen(false);
     }
   };
 
@@ -51,8 +54,12 @@ const GlobalTrafficRulesMangeDialog = () => {
     );
   }, [trafficRules.data]);
 
+  useEffect(() => {
+    trafficRules.refetch();
+  }, [open]);
+
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="ghost">Global Traffic Rules</Button>
       </DialogTrigger>
@@ -104,7 +111,10 @@ const GlobalTrafficRulesMangeDialog = () => {
               />
             </div>
 
-            <Button disabled={setTrafficRules.isPending} type="submit">
+            <Button
+              disabled={trafficRules.isPending || setTrafficRules.isPending}
+              type="submit"
+            >
               Save Changes
             </Button>
           </form>

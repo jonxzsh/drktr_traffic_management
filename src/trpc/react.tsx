@@ -1,29 +1,85 @@
 "use client";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { loggerLink, unstable_httpBatchStreamLink } from "@trpc/client";
+import {
+  TRPCClientError,
+  loggerLink,
+  unstable_httpBatchStreamLink,
+} from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { useState } from "react";
 import SuperJSON from "superjson";
 
+import { useToast } from "@/components/ui/use-toast";
 import { type AppRouter } from "@/server/api/root";
-
-const createQueryClient = () => new QueryClient();
-
-let clientQueryClientSingleton: QueryClient | undefined = undefined;
-const getQueryClient = () => {
-  if (typeof window === "undefined") {
-    // Server: always make a new query client
-    return createQueryClient();
-  }
-  // Browser: use singleton pattern to keep the same query client
-  return (clientQueryClientSingleton ??= createQueryClient());
-};
+import { useRouter } from "next/navigation";
 
 export const api = createTRPCReact<AppRouter>();
 
 export function TRPCReactProvider(props: { children: React.ReactNode }) {
-  const queryClient = getQueryClient();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            retry: (val, err) => {
+              if (typeof window === "undefined") return true;
+              if (!(err instanceof TRPCClientError)) return true;
+              if (err.data?.code === "UNAUTHORIZED") {
+                toast({
+                  title: "An error occurred",
+                  description: err
+                    .toString()
+                    .replaceAll("TRPCClientError: ", ""),
+                  variant: "destructive",
+                });
+                router.push("/auth/login");
+                return false;
+              } else {
+                toast({
+                  title: "An error occurred",
+                  description: err
+                    .toString()
+                    .replaceAll("TRPCClientError: ", ""),
+                  variant: "destructive",
+                });
+                return true;
+              }
+            },
+          },
+          mutations: {
+            retry: (val, err) => {
+              if (typeof window === "undefined") return false;
+              if (!(err instanceof TRPCClientError)) return false;
+              if (err.data?.code === "UNAUTHORIZED") {
+                toast({
+                  title: "An error occurred",
+                  description: err
+                    .toString()
+                    .replaceAll("TRPCClientError: ", ""),
+                  variant: "destructive",
+                });
+                router.push("/auth/login");
+                return false;
+              } else {
+                console.log("toost");
+                toast({
+                  title: "An error occurred",
+                  description: err
+                    .toString()
+                    .replaceAll("TRPCClientError: ", ""),
+                  variant: "destructive",
+                });
+                return false;
+              }
+            },
+          },
+        },
+      }),
+  );
 
   const [trpcClient] = useState(() =>
     api.createClient({
@@ -43,7 +99,7 @@ export function TRPCReactProvider(props: { children: React.ReactNode }) {
           },
         }),
       ],
-    })
+    }),
   );
 
   return (

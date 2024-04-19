@@ -32,13 +32,22 @@ const PublishersDataTable = ({
           size: 200,
         },
         {
+          accessorKey: "active",
+          header: "Status",
+          cell: ({ row }) => {
+            return <>{row.original.active ? "Active" : "Inactive"}</>;
+          },
+        },
+        {
           accessorKey: "createdAt",
           header: () => <div className="text-right">Created</div>,
           cell: ({ row }) => {
-            const formattedDate = new Date(row.getValue("createdAt"))
-              .toJSON()
-              .slice(0, 10);
-            return <div className="text-right">{formattedDate}</div>;
+            const formattedDate = new Date(row.getValue("createdAt"));
+            return (
+              <div className="text-right">
+                {formattedDate.toLocaleDateString("en-US")}
+              </div>
+            );
           },
         },
         {

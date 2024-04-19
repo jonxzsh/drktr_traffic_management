@@ -26,6 +26,7 @@ const PublishersPageDeleteDialog = ({
   const onDelete = async () => {
     const result = await deletePublisher.mutateAsync(publisher.id);
     if (result) {
+      setOpen(false);
       onSuccess();
     }
   };
