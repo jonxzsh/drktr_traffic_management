@@ -198,27 +198,31 @@ export const GET = async (
     publisherId: publisherOnTopic.publisherId,
   });
 
-  return Response.json(
-    {
-      redirect_url: redirectUrl,
-      request_id: requestId,
-      ad_id_drktr_id: adidDrktrId,
-      publisherOnTopic: params.id,
-      ua: {
-        device: {
-          type: deviceType,
-          os: deviceOs,
+  if (requestParams.get("debug") === "true") {
+    return Response.json(
+      {
+        redirect_url: redirectUrl,
+        request_id: requestId,
+        ad_id_drktr_id: adidDrktrId,
+        publisherOnTopic: params.id,
+        ua: {
+          device: {
+            type: deviceType,
+            os: deviceOs,
+          },
+          browser,
         },
-        browser,
+        ref: {
+          hostname: requestHostname,
+          raw: referer,
+        },
+        landing_page: landingPage,
       },
-      ref: {
-        hostname: requestHostname,
-        raw: referer,
-      },
-      landing_page: landingPage,
-    },
-    { status: 200 },
-  );
+      { status: 200 },
+    );
+  }
+
+  return Response.redirect(redirectUrl);
 };
 
 const getRedirectUrl = (
@@ -233,6 +237,8 @@ const getRedirectUrl = (
   if (landingPage.feedProvider === "SYSTEM1") {
     redirectUrl.searchParams.append("rskey", topic.name);
     redirectUrl.searchParams.append("headline", topic.name);
+    if (publisher.fbBusinessManagerId)
+      redirectUrl.searchParams.append("fbid", publisher.fbBusinessManagerId);
     redirectUrl.searchParams.append("click_track_url", clickTrackUrl);
   } else if (landingPage.feedProvider === "PERION") {
     redirectUrl.searchParams.append("gd", "1234");
