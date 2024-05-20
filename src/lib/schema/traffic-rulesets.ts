@@ -11,6 +11,7 @@ export const CreateTrafficRulesetSchema = z.object({
     .array(),
   referrer_url_min_length: z.number(),
   device: z.enum(deviceEnum.enumValues),
+  no_referer_allowed: z.boolean(),
 });
 
 export const EditTrafficRulesetSchema = z.object({
@@ -24,4 +25,5 @@ export const EditTrafficRulesetSchema = z.object({
     .array(),
   referrer_url_min_length: z.number(),
   device: z.enum(deviceEnum.enumValues),
+  no_referer_allowed: z.boolean(),
 });

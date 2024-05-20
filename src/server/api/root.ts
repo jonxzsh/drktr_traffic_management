@@ -4,6 +4,7 @@ import GlobalTrafficRulesRouter from "./routers/global-traffic-rules";
 import LandingPagesRouter from "./routers/landing-pages";
 import PublishersRouter from "./routers/publishers";
 import TopicsRouter from "./routers/topics";
+import TrafficRequestsRouter from "./routers/traffic-requests";
 import TrafficRulesetsRouter from "./routers/traffic-rulesets";
 
 /**
@@ -17,6 +18,7 @@ export const appRouter = createTRPCRouter({
   backupLandingPages: BackupLandingPagesRouter,
   topics: TopicsRouter,
   trafficRulesets: TrafficRulesetsRouter,
+  trafficRequests: TrafficRequestsRouter,
   globalTraffic: GlobalTrafficRulesRouter,
 });
 

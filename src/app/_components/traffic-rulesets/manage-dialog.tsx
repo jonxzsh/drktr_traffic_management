@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { EditTrafficRulesetSchema } from "@/lib/schema/traffic-rulesets";
 import { ITrafficRuleset } from "@/lib/types/generic";
 import { deviceEnum } from "@/server/db/schema";
@@ -49,6 +50,7 @@ const TrafficRulesetManageDialog = ({
         (p) => ({ id: p.id, value: p.parameter ?? undefined }),
       ),
       referrer_url_min_length: ruleset.referrer_url_min_length,
+      no_referer_allowed: ruleset.no_referer_allowed ?? undefined,
     },
   });
 
@@ -89,6 +91,23 @@ const TrafficRulesetManageDialog = ({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="no_referer_allowed"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>No Referer Allowed</FormLabel>
+                    <FormItem>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormItem>
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name={"referrer_domains_allowed"}
@@ -99,6 +118,7 @@ const TrafficRulesetManageDialog = ({
                       <StringArrayBuilder
                         defaultValue={field.value}
                         onChange={field.onChange}
+                        disabled={form.watch("no_referer_allowed")}
                       />
                     </FormControl>
                   </FormItem>
@@ -115,6 +135,7 @@ const TrafficRulesetManageDialog = ({
                         defaultValue={field.value}
                         onChange={field.onChange}
                         itemName={"Parameter"}
+                        disabled={form.watch("no_referer_allowed")}
                       />
                     </FormControl>
                   </FormItem>
@@ -136,6 +157,7 @@ const TrafficRulesetManageDialog = ({
                 )}
               />
             </div>
+
             <div className="flex justify-between">
               <FormField
                 control={form.control}

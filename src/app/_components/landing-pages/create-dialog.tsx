@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
 import { CreateLandingPageSchema } from "@/lib/schema/landing-pages";
 import { deviceEnum } from "@/server/db/schema";
 import { api } from "@/trpc/react";
@@ -272,19 +271,6 @@ const LandingPageCreateDialog = ({ onSuccess }: { onSuccess: () => void }) => {
                         </FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={"referrer_required"}
-                    render={({ field }) => (
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          defaultChecked={field.value}
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                        <FormLabel>Referrer Required</FormLabel>
-                      </div>
                     )}
                   />
                 </div>

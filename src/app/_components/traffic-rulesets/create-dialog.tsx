@@ -10,10 +10,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Switch } from "@/components/ui/switch";
 import { CreateTrafficRulesetSchema } from "@/lib/schema/traffic-rulesets";
 import { deviceEnum } from "@/server/db/schema";
 import { api } from "@/trpc/react";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import StringArrayBuilder from "../generic/string-array-builder";
@@ -23,6 +25,8 @@ const TrafficRulesetsCreateDialog = ({
 }: {
   onSuccess: () => void;
 }) => {
+  const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+
   const createMutation = api.trafficRulesets.createTrafficRuleset.useMutation();
 
   const form = useForm<z.infer<typeof CreateTrafficRulesetSchema>>({
@@ -32,6 +36,7 @@ const TrafficRulesetsCreateDialog = ({
         { id: crypto.randomUUID(), value: "example.com" },
       ],
       referrer_required_parameters: [],
+      no_referer_allowed: false,
     },
   });
 
@@ -46,7 +51,7 @@ const TrafficRulesetsCreateDialog = ({
   };
 
   return (
-    <Dialog>
+    <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <DialogTrigger asChild>
         <Button>
           <svg
@@ -93,6 +98,23 @@ const TrafficRulesetsCreateDialog = ({
                   </FormItem>
                 )}
               />
+
+              <FormField
+                control={form.control}
+                name="no_referer_allowed"
+                render={({ field }) => (
+                  <FormItem className="flex items-center justify-between">
+                    <FormLabel>No Referer Allowed</FormLabel>
+                    <FormItem>
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormItem>
+                  </FormItem>
+                )}
+              />
+
               <FormField
                 control={form.control}
                 name={"referrer_domains_allowed"}
@@ -103,6 +125,7 @@ const TrafficRulesetsCreateDialog = ({
                       <StringArrayBuilder
                         defaultValue={field.value}
                         onChange={field.onChange}
+                        disabled={form.watch("no_referer_allowed")}
                       />
                     </FormControl>
                   </FormItem>
@@ -119,6 +142,7 @@ const TrafficRulesetsCreateDialog = ({
                         defaultValue={field.value}
                         onChange={field.onChange}
                         itemName={"Parameter"}
+                        disabled={form.watch("no_referer_allowed")}
                       />
                     </FormControl>
                   </FormItem>
@@ -140,38 +164,37 @@ const TrafficRulesetsCreateDialog = ({
                 )}
               />
             </div>
-            <div className="flex justify-between">
-              <FormField
-                control={form.control}
-                name={"device"}
-                render={({ field }) => (
-                  <FormItem className="w-full">
-                    <FormLabel>Device Restrictions</FormLabel>
-                    <FormControl>
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                        className="flex flex-col space-y-1"
-                      >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value={deviceEnum.enumValues[2]} />
-                          <FormLabel>Any</FormLabel>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value={deviceEnum.enumValues[0]} />
-                          <FormLabel>Desktop</FormLabel>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value={deviceEnum.enumValues[1]} />
-                          <FormLabel>Mobile</FormLabel>
-                        </div>
-                      </RadioGroup>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+
+            <FormField
+              control={form.control}
+              name={"device"}
+              render={({ field }) => (
+                <FormItem className="w-full">
+                  <FormLabel>Device Restrictions</FormLabel>
+                  <FormControl>
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      defaultValue={field.value}
+                      className="flex flex-col space-y-1"
+                    >
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value={deviceEnum.enumValues[2]} />
+                        <FormLabel>Any</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value={deviceEnum.enumValues[0]} />
+                        <FormLabel>Desktop</FormLabel>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <RadioGroupItem value={deviceEnum.enumValues[1]} />
+                        <FormLabel>Mobile</FormLabel>
+                      </div>
+                    </RadioGroup>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button disabled={createMutation.isPending} type={"submit"}>
               Create Traffic Ruleset
             </Button>

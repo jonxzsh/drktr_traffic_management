@@ -17,7 +17,6 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Switch } from "@/components/ui/switch";
 import { EditLandingPageSchema } from "@/lib/schema/landing-pages";
 import { ILandingPage } from "@/lib/types/generic";
 import { deviceEnum } from "@/server/db/schema";
@@ -57,7 +56,6 @@ const LandingPageEditDialog = ({
       },
       geo: landingPage.geo ?? undefined,
       device: landingPage.device,
-      referrer_required: landingPage.referrerRequired,
       traffic_ruleset_ids: landingPage.trafficRulesets.map(
         (t) => t.trafficRulesetId,
       ),
@@ -276,19 +274,6 @@ const LandingPageEditDialog = ({
                         </FormControl>
                         <FormMessage />
                       </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={"referrer_required"}
-                    render={({ field }) => (
-                      <div className="flex items-center space-x-2">
-                        <Switch
-                          defaultChecked={field.value}
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                        <FormLabel>Referrer Required</FormLabel>
-                      </div>
                     )}
                   />
                 </div>

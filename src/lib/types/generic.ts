@@ -7,6 +7,7 @@ import {
   rulesetAllowedDomains,
   rulesetRequiredParameters,
   topics,
+  trafficRequests,
   trafficRulesets,
 } from "@/server/db/schema";
 import { InferSelectModel } from "drizzle-orm";
@@ -38,3 +39,5 @@ export type ILandingPage = InferSelectModel<typeof landingPages> & {
   topic: InferSelectModel<typeof topics>;
   trafficRulesets: ILandingPageRuleset[];
 };
+
+export type ITrafficRequest = InferSelectModel<typeof trafficRequests>;

@@ -10,7 +10,7 @@ import {
   trafficRulesets,
 } from "@/server/db/schema";
 import { TRPCError } from "@trpc/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray, not } from "drizzle-orm";
 import { z } from "zod";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
@@ -28,12 +28,27 @@ const TrafficRulesetsRouter = createTRPCRouter({
   createTrafficRuleset: protectedProcedure
     .input(CreateTrafficRulesetSchema)
     .mutation(async ({ ctx, input }) => {
+      const existingDomain = await ctx.db.query.rulesetAllowedDomains.findFirst(
+        {
+          where: inArray(
+            rulesetAllowedDomains.domain,
+            input.referrer_domains_allowed.map((d) => d.value),
+          ),
+        },
+      );
+      if (existingDomain)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Domain ${existingDomain.domain} is already linked to another ruleset!`,
+        });
+
       const trafficRuleset = await ctx.db
         .insert(trafficRulesets)
         .values({
           name: input.name,
           referrer_url_min_length: input.referrer_url_min_length,
           device: input.device,
+          no_referer_allowed: input.no_referer_allowed,
         })
         .returning();
 
@@ -44,19 +59,21 @@ const TrafficRulesetsRouter = createTRPCRouter({
           message: "Failed to create traffic ruleset!",
         });
 
-      input.referrer_domains_allowed.forEach(async (domain) => {
-        await ctx.db.insert(rulesetAllowedDomains).values({
-          domain: domain.value,
-          trafficRulesetId: newRuleset.id,
+      if (!input.no_referer_allowed) {
+        input.referrer_domains_allowed.forEach(async (domain) => {
+          await ctx.db.insert(rulesetAllowedDomains).values({
+            domain: domain.value,
+            trafficRulesetId: newRuleset.id,
+          });
         });
-      });
 
-      input.referrer_required_parameters.forEach(async (parameter) => {
-        await ctx.db.insert(rulesetRequiredParameters).values({
-          parameter: parameter.value,
-          trafficRulesetId: newRuleset.id,
+        input.referrer_required_parameters.forEach(async (parameter) => {
+          await ctx.db.insert(rulesetRequiredParameters).values({
+            parameter: parameter.value,
+            trafficRulesetId: newRuleset.id,
+          });
         });
-      });
+      }
 
       return newRuleset;
     }),
@@ -70,6 +87,23 @@ const TrafficRulesetsRouter = createTRPCRouter({
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "This traffic ruleset doesn't exist!",
+        });
+
+      const existingDomain = await ctx.db.query.rulesetAllowedDomains.findFirst(
+        {
+          where: and(
+            inArray(
+              rulesetAllowedDomains.domain,
+              input.referrer_domains_allowed.map((d) => d.value),
+            ),
+            not(eq(rulesetAllowedDomains.trafficRulesetId, trafficRuleset.id)),
+          ),
+        },
+      );
+      if (existingDomain)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: `Domain ${existingDomain.domain} is already linked to another ruleset!`,
         });
 
       const updatedRulesets = await ctx.db
@@ -86,12 +120,14 @@ const TrafficRulesetsRouter = createTRPCRouter({
         .delete(rulesetAllowedDomains)
         .where(eq(rulesetAllowedDomains.trafficRulesetId, trafficRuleset.id));
 
-      input.referrer_domains_allowed.forEach(async (domain) => {
-        await ctx.db.insert(rulesetAllowedDomains).values({
-          domain: domain.value,
-          trafficRulesetId: trafficRuleset.id,
+      if (!input.no_referer_allowed) {
+        input.referrer_domains_allowed.forEach(async (domain) => {
+          await ctx.db.insert(rulesetAllowedDomains).values({
+            domain: domain.value,
+            trafficRulesetId: trafficRuleset.id,
+          });
         });
-      });
+      }
 
       await ctx.db
         .delete(rulesetRequiredParameters)
@@ -99,12 +135,14 @@ const TrafficRulesetsRouter = createTRPCRouter({
           eq(rulesetRequiredParameters.trafficRulesetId, trafficRuleset.id),
         );
 
-      input.referrer_required_parameters.forEach(async (parameter) => {
-        await ctx.db.insert(rulesetRequiredParameters).values({
-          parameter: parameter.value,
-          trafficRulesetId: trafficRuleset.id,
+      if (!input.no_referer_allowed) {
+        input.referrer_required_parameters.forEach(async (parameter) => {
+          await ctx.db.insert(rulesetRequiredParameters).values({
+            parameter: parameter.value,
+            trafficRulesetId: trafficRuleset.id,
+          });
         });
-      });
+      }
 
       return true;
     }),

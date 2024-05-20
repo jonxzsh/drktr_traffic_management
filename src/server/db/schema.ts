@@ -56,6 +56,7 @@ export const publishers = createTable("publisher", {
     .notNull(),
   name: varchar("name", { length: 256 }).notNull(),
   apiKey: varchar("api_key", { length: 256 }).notNull(),
+  fbBusinessManagerId: text("fb_business_manager_id"),
   active: boolean("active")
     .$defaultFn(() => true)
     .notNull(),
@@ -66,6 +67,7 @@ export const publishers = createTable("publisher", {
 
 export const publishersRelations = relations(publishers, ({ many }) => ({
   topics: many(publisherOnTopics),
+  trafficRequests: many(trafficRequests),
 }));
 
 export const publisherOnTopics = pgTable("publisher_topics", {
@@ -109,9 +111,15 @@ export const topics = createTable("topic", {
 export const topicsRelations = relations(topics, ({ many }) => ({
   landingPages: many(landingPages),
   publishers: many(publisherOnTopics),
+  trafficRequests: many(trafficRequests),
 }));
 
 export const deviceEnum = pgEnum("device", ["desktop", "mobile", "any"]);
+export const rulesetBehaviourEnum = pgEnum("ruleset_behaviour", [
+  "taboola",
+  "facebook",
+  "default",
+]);
 
 export const trafficRulesets = createTable("traffic_rulesets", {
   id: text("id")
@@ -122,6 +130,8 @@ export const trafficRulesets = createTable("traffic_rulesets", {
   name: varchar("name", { length: 256 }).notNull(),
   referrer_url_min_length: integer("referrer_url_min_length").notNull(),
   device: deviceEnum("device").notNull(),
+
+  no_referer_allowed: boolean("no_referer_allowed").default(false),
 
   createdAt: timestamp("created_at")
     .default(sql`CURRENT_TIMESTAMP`)
@@ -134,6 +144,7 @@ export const trafficRulesetRelations = relations(
     landingPages: many(pagesOnTrafficRulesets),
     rulesetAllowedDomains: many(rulesetAllowedDomains),
     rulesetRequiredParameters: many(rulesetRequiredParameters),
+    trafficRequests: many(trafficRequests),
   }),
 );
 
@@ -219,7 +230,6 @@ export const landingPages = createTable("landing_pages", {
     .notNull()
     .default(sql`'{}'::text[]`),
   device: deviceEnum("device").notNull(),
-  referrerRequired: boolean("referrer_required").notNull(),
 
   topicId: text("topic_id")
     .notNull()
@@ -238,6 +248,7 @@ export const landingPagesRelations = relations(
       references: [topics.id],
     }),
     trafficRulesets: many(pagesOnTrafficRulesets),
+    trafficRequests: many(trafficRequests),
   }),
 );
 
@@ -258,7 +269,7 @@ export const pagesOnTrafficRulesets = pgTable("pages_traffic_rulesets", {
 export const pagesOnTrafficRulesetsRelations = relations(
   pagesOnTrafficRulesets,
   ({ one }) => ({
-    landingPages: one(landingPages, {
+    landingPage: one(landingPages, {
       fields: [pagesOnTrafficRulesets.landingPageId],
       references: [landingPages.id],
     }),
@@ -285,6 +296,13 @@ export const backupLandingPages = createTable("backup_landing_page", {
     .notNull(),
 });
 
+export const backupLandingPagesRelations = relations(
+  backupLandingPages,
+  ({ many }) => ({
+    trafficRequests: many(trafficRequests),
+  }),
+);
+
 export const globalTrafficRules = createTable("global_traffic_rules", {
   id: text("id")
     .$defaultFn(() => createId())
@@ -298,3 +316,83 @@ export const globalTrafficRules = createTable("global_traffic_rules", {
     .default(sql`CURRENT_TIMESTAMP`)
     .notNull(),
 });
+
+export const adIds = createTable("ad_ids", {
+  id: text("id")
+    .$defaultFn(() => createId())
+    .primaryKey()
+    .notNull(),
+  adIdValue: text("ad_id_value").notNull(),
+  publisherId: text("publisher_id").notNull(),
+  topicId: text("topic_id").notNull(),
+  createdAt: timestamp("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const adIdsRelations = relations(adIds, ({ one }) => ({
+  publisher: one(publishers, {
+    fields: [adIds.publisherId],
+    references: [publishers.id],
+  }),
+  topic: one(topics, {
+    fields: [adIds.topicId],
+    references: [topics.id],
+  }),
+}));
+
+export const trafficRequests = createTable("traffic_requests", {
+  id: text("id")
+    .$defaultFn(() => createId())
+    .primaryKey()
+    .notNull(),
+  referrerUrl: text("referrer_url"),
+  ip: text("ip").notNull(),
+  deviceType: deviceEnum("device_type").notNull(),
+  deviceOs: text("device_os").notNull(),
+  browser: text("browser").notNull(),
+  geo: text("geo").notNull(),
+  accepted: boolean("accepted").notNull().default(true),
+  declineReason: text("decline_reason"),
+  monetized: boolean("monetized").default(false),
+  adidId: text("ad_id_id"),
+  trafficRulesetId: text("traffic_ruleset_id").notNull(),
+  landingPageId: text("landing_page_id"),
+  backupLandingPageId: text("backup_landing_page_id"),
+  topicId: text("topic_id").notNull(),
+  publisherId: text("publisher_id").notNull(),
+  monetizedAt: timestamp("monetized_at"),
+  createdAt: timestamp("created_at")
+    .default(sql`CURRENT_TIMESTAMP`)
+    .notNull(),
+});
+
+export const trafficRequestsRelations = relations(
+  trafficRequests,
+  ({ one }) => ({
+    adId: one(adIds, {
+      fields: [trafficRequests.adidId],
+      references: [adIds.id],
+    }),
+    landingPage: one(landingPages, {
+      fields: [trafficRequests.landingPageId],
+      references: [landingPages.id],
+    }),
+    backupLandingPage: one(backupLandingPages, {
+      fields: [trafficRequests.backupLandingPageId],
+      references: [backupLandingPages.id],
+    }),
+    trafficRuleset: one(trafficRulesets, {
+      fields: [trafficRequests.trafficRulesetId],
+      references: [trafficRulesets.id],
+    }),
+    topic: one(topics, {
+      fields: [trafficRequests.topicId],
+      references: [topics.id],
+    }),
+    publisher: one(publishers, {
+      fields: [trafficRequests.publisherId],
+      references: [publishers.id],
+    }),
+  }),
+);

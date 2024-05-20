@@ -69,7 +69,9 @@ const PublishersRouter = createTRPCRouter({
       await ctx.db
         .update(publishers)
         .set({
-          active: input.active,
+          active: input.active ?? publisher.active,
+          fbBusinessManagerId:
+            input.fb_business_manager_id ?? publisher.fbBusinessManagerId,
         })
         .where(eq(publishers.id, publisher.id));
 

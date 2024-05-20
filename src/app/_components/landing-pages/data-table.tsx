@@ -34,6 +34,9 @@ const LandingPagesDataTable = ({
     {
       accessorKey: "url",
       header: "URL",
+      cell: ({ row }) => {
+        return <div className="max-w-[250px] truncate">{row.original.url}</div>;
+      },
     },
     {
       accessorKey: "createdAt",

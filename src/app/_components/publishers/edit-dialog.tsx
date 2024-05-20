@@ -19,7 +19,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { env } from "@/env";
-import { AssignPublisherTopicSchema } from "@/lib/schema/publishers";
+import {
+  AssignPublisherTopicSchema,
+  EditPublisherSchema,
+} from "@/lib/schema/publishers";
 import { IPublisher, IPublisherTopic } from "@/lib/types/generic";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
@@ -31,7 +34,7 @@ import CopyButton from "../generic/copy-button";
 import TopicDropdown from "../generic/topic-dropdown";
 
 const getPublisherTopicUrl = (relation_id: string) => {
-  return `${env.NEXT_PUBLIC_APP_URL}/tr/${relation_id}?adbid=&subid=`;
+  return `${env.NEXT_PUBLIC_APP_URL}/tr/${relation_id}?adid=`;
 };
 
 const PublisherEditDialog = ({
@@ -151,8 +154,59 @@ const PublisherEditDialog = ({
             <PublisherAssignTopic publisher={publisher} refresh={refresh} />
           </div>
         </div>
+        <Separator />
+        <PublisherSettings publisher={publisher} refresh={refresh} />
       </DialogContent>
     </Dialog>
+  );
+};
+
+const PublisherSettings = ({
+  publisher,
+  refresh,
+}: {
+  publisher: IPublisher;
+  refresh: () => void;
+}) => {
+  const editPublisher = api.publishers.editPublisher.useMutation();
+
+  const form = useForm<z.infer<typeof EditPublisherSchema>>({
+    resolver: zodResolver(EditPublisherSchema),
+    defaultValues: {
+      publisher_id: publisher.id,
+      fb_business_manager_id: publisher.fbBusinessManagerId ?? undefined,
+    },
+  });
+
+  const onSubmit = async (values: z.infer<typeof EditPublisherSchema>) => {
+    const result = await editPublisher.mutateAsync(values);
+    if (result) refresh();
+  };
+
+  return (
+    <Form {...form}>
+      <form
+        className="flex flex-col gap-y-3"
+        onSubmit={form.handleSubmit(onSubmit)}
+      >
+        <FormField
+          control={form.control}
+          name="fb_business_manager_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Facebook Business Manager ID</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button disabled={editPublisher.isPending} type="submit">
+          Save
+        </Button>
+      </form>
+    </Form>
   );
 };
 

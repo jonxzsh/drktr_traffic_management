@@ -6,7 +6,8 @@ export const GetPublishersSchema = z.object({
 
 export const EditPublisherSchema = z.object({
   publisher_id: z.string(),
-  active: z.boolean(),
+  fb_business_manager_id: z.string().optional(),
+  active: z.boolean().optional(),
 });
 
 export const CreatePublisherSchema = z.object({

@@ -9,11 +9,13 @@ type StringObj = {
 };
 
 const StringArrayBuilder = ({
+  disabled,
   defaultValue,
   onChange,
   itemName = "Item",
   maxItems = 5,
 }: {
+  disabled: boolean;
   defaultValue: StringObj[];
   onChange: (state: StringObj[]) => void;
   itemName?: string;
@@ -40,6 +42,7 @@ const StringArrayBuilder = ({
               console.log("after", arrayCopy);
               onChange(arrayCopy);
             }}
+            disabled={disabled}
           />
           <Button
             variant={"destructive"}
@@ -50,6 +53,7 @@ const StringArrayBuilder = ({
               arrayCopy = arrayCopy.filter((v) => v.id !== item.id);
               onChange(arrayCopy);
             }}
+            disabled={disabled}
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -69,7 +73,7 @@ const StringArrayBuilder = ({
         </div>
       ))}
       <Button
-        disabled={defaultValue.length === maxItems}
+        disabled={disabled || defaultValue.length === maxItems}
         onClick={() => {
           const arrayCopy = defaultValue;
           arrayCopy.push({ id: crypto.randomUUID(), value: "" });

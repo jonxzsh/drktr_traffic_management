@@ -13,6 +13,9 @@ const DashboardNavbar = () => {
             drktr admin dashboard
           </div>
           <div className="flex gap-x-2">
+            <NavOption href={"/dashboard/traffic-requests"}>
+              Traffic Log
+            </NavOption>
             <NavOption href={"/dashboard/publishers"}>Publishers</NavOption>
             <NavOption href={"/dashboard/topics"}>Topics</NavOption>
             <NavOption href={"/dashboard/landing-pages"}>

@@ -59,7 +59,6 @@ const LandingPagesRouter = createTRPCRouter({
           ipFreqCapHours: input.ip_frequency_cap.hours,
           geo: input.geo,
           device: input.device,
-          referrerRequired: input.referrer_required,
 
           topicId: input.topic_id,
         })
@@ -120,7 +119,6 @@ const LandingPagesRouter = createTRPCRouter({
           ipFreqCapHours: input.ip_frequency_cap.hours,
           geo: input.geo,
           device: input.device,
-          referrerRequired: input.referrer_required,
 
           topicId: input.topic_id,
         })

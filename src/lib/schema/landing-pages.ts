@@ -17,7 +17,6 @@ export const CreateLandingPageSchema = z.object({
   }),
   geo: z.string().array().optional(),
   device: z.enum(deviceEnum.enumValues),
-  referrer_required: z.boolean(),
   topic_id: z.string(),
   traffic_ruleset_ids: z.string().array(),
 });
@@ -34,7 +33,6 @@ export const EditLandingPageSchema = z.object({
   }),
   geo: z.string().array().optional(),
   device: z.enum(deviceEnum.enumValues),
-  referrer_required: z.boolean(),
   topic_id: z.string(),
   traffic_ruleset_ids: z.string().array(),
 });
