@@ -6,7 +6,6 @@ const TrafficRequestsRouter = createTRPCRouter({
   getTrafficRequests: protectedProcedure.query(async ({ ctx }) => {
     return await ctx.db.query.trafficRequests.findMany({
       orderBy: desc(trafficRequests.createdAt),
-      limit: 30,
     });
   }),
 });
