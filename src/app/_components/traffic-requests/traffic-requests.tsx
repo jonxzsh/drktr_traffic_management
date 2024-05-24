@@ -4,12 +4,16 @@ import { api } from "@/trpc/react";
 import TrafficRequestsDataTable from "./data-table";
 
 const DashboardTrafficRequests = () => {
+  const requestsStats = api.trafficRequests.getTrafficStats.useQuery();
   const trafficRequests = api.trafficRequests.getTrafficRequests.useQuery();
 
   return (
     <div className="flex flex-col gap-y-6">
       <div className="flex items-center justify-between">
-        <div className="text-2xl font-semibold">Traffic Requests</div>
+        <div className="text-2xl font-semibold">
+          Traffic Requests ({requestsStats.data?.totalRequestsCount} total,{" "}
+          {requestsStats.data?.monetizedRequestsCount} monetized)
+        </div>
       </div>
       {trafficRequests.data ? (
         <TrafficRequestsDataTable
